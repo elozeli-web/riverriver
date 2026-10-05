@@ -58,8 +58,8 @@ body.phone-ui{position:fixed;inset:0;width:100%;height:var(--app-height,100dvh);
 <div id="mobileBar" class="mobile-bar"><div class="mobile-title">RIVER RAID<span id="mobileMode">KLASYCZNA</span></div><button class="app-icon" id="mobileFullscreen" type="button" aria-label="Pełny ekran"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button><button class="app-icon" id="mobilePause" type="button" aria-label="Pauza" disabled>Ⅱ</button><button class="app-icon" id="mobileMenu" type="button" aria-label="Ustawienia"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16M8 3v6m8 0v6m-6 0v6"/></svg></button></div>
 <div class="graphics-switch" role="group" aria-label="Tryb grafiki"><span>GRAFIKA</span><button type="button" id="graphicsClassic" aria-pressed="true">Klasyczna</button><button type="button" id="graphicsModern" aria-pressed="false">Nowoczesna <b>HD</b></button></div>
 <div class="scoreboard"><div><div class="label">PUNKTY</div><div class="score" id="score">000000</div></div><div class="record"><div class="label">REKORD</div><div class="score" id="best">000000</div></div></div>
-<div class="screen-well"><div class="viewport"><canvas id="game" width="320" height="416" role="img" aria-label="Pole gry: samolot, rzeka, przeciwnicy i bazy paliwowe"></canvas><div class="scanlines"></div><div class="overlay" id="overlay"><div class="overlay-inner"><div class="tag" id="overlayTag">GOTOWOŚĆ DO STARTU</div><h2 id="overlayTitle">Obierz kurs na północ.</h2><p id="overlayText">Omijaj brzegi, zestrzeliwuj przeciwników i pilnuj paliwa. Każdy most otwiera kolejny etap.</p><p class="mobile-instruction">Przesuwaj palcem po lewej: lot.<br>Dotknij i trzymaj po prawej: ogień.</p><button type="button" class="primary" id="start">ROZPOCZNIJ LOT →</button><small id="overlayHint">lub naciśnij Enter / Spację</small></div></div></div>
-<div class="touch-zones" aria-label="Sterowanie dotykowe"><div class="touch-zone" id="steerZone" role="group" aria-label="Lewa połowa: przesuń palec w kierunku lotu. Puść, aby zatrzymać ruch."></div><div class="touch-zone" id="fireZone" role="group" aria-label="Prawa połowa: dotknij i przytrzymaj, aby strzelać."></div></div>
+<div class="screen-well"><div class="viewport"><canvas id="game" width="320" height="416" role="img" aria-label="Pole gry: samolot, rzeka, przeciwnicy i bazy paliwowe"></canvas><div class="scanlines"></div><div class="overlay" id="overlay"><div class="overlay-inner"><div class="tag" id="overlayTag">GOTOWOŚĆ DO STARTU</div><h2 id="overlayTitle">Obierz kurs na północ.</h2><p id="overlayText">Omijaj brzegi, zestrzeliwuj przeciwników i pilnuj paliwa. Każdy most otwiera kolejny etap.</p><p class="mobile-instruction">Przeciągaj samolot palcem po lewej.<br>Przytrzymaj prawą stronę: ogień.</p><button type="button" class="primary" id="start">ROZPOCZNIJ LOT →</button><small id="overlayHint">lub naciśnij Enter / Spację</small></div></div></div>
+<div class="touch-zones" aria-label="Sterowanie dotykowe"><div class="touch-zone" id="steerZone" role="group" aria-label="Lewa połowa: przeciągaj samolot ruchem palca. Zatrzymaj palec, aby zatrzymać samolot."></div><div class="touch-zone" id="fireZone" role="group" aria-label="Prawa połowa: dotknij i przytrzymaj, aby strzelać."></div></div>
 </div>
 <div class="instrument-panel"><div class="fuel-label"><span>PALIWO <span id="refuel"></span></span><span id="fuelValue">100%</span></div><div class="fuel-track" id="fuelTrack" role="meter" aria-label="Poziom paliwa" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div class="fuel-fill" id="fuelFill"></div></div><div class="flight-data"><span>ETAP <strong id="stage">01</strong></span><span aria-label="Pozostałe życia" id="lives"><span class="life-plane">▲▲▲</span></span></div><div class="status"><span id="status" aria-live="polite">OCZEKIWANIE NA PILOTA</span><span id="speed">PRĘDKOŚĆ 1.0×</span></div></div>
 <div class="toolbar"><button type="button" class="tool" id="pause" disabled>Pauza · P</button><button type="button" class="tool" id="restart">Nowa gra · R</button><button type="button" class="tool" id="sound" aria-pressed="false">Dźwięk: wył.</button></div>
@@ -164,10 +164,22 @@ class Game{
   for(const p of this.particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt}this.particles=this.particles.filter(p=>p.life>0);
   for(const p of this.texts){p.y-=23*dt;p.life-=dt}this.texts=this.texts.filter(p=>p.life>0);
   if(this.mode==='dying'){this.deathTime-=dt;if(this.deathTime<=0){if(this.lives<=0)this.mode='gameover';else{this.load(this.checkpoint);this.mode='playing'}}return}
-  const dx=(input.right?1:0)-(input.left?1:0),dy=(input.down?1:0)-(input.up?1:0);
-  this.player.vx=dx?Math.sign(dx)*Math.min(120,Math.abs(this.player.vx)+230*dt):0;
-  this.player.x=clamp(this.player.x+this.player.vx*dt,8,W-8);
-  this.player.y=clamp(this.player.y+dy*58*dt,H*.56,H*.89);
+  const drag=Array.isArray(input.drag)?input.drag:null,path=[];
+  const dx=(input.right?1:0)-(input.left?1:0),dy=drag?Math.sign(drag.reduce((sum,p)=>sum+p.dy,0)):(input.down?1:0)-(input.up?1:0);
+  if(drag){
+   // Touch displacement is consumed once, with no held direction or inertia.
+   this.player.vx=0;
+   for(const move of drag){
+    const x=this.player.x,y=this.player.y,nx=clamp(x+move.dx,8,W-8),ny=clamp(y+move.dy,H*.56,H*.89);
+    const count=Math.ceil(Math.max(Math.abs(nx-x),Math.abs(ny-y))/2);
+    for(let i=1;i<=count;i++)path.push({x:x+(nx-x)*i/count,y:y+(ny-y)*i/count});
+    this.player.x=nx;this.player.y=ny;
+   }
+  }else{
+   this.player.vx=dx?Math.sign(dx)*Math.min(120,Math.abs(this.player.vx)+230*dt):0;
+   this.player.x=clamp(this.player.x+this.player.vx*dt,8,W-8);
+   this.player.y=clamp(this.player.y+dy*58*dt,H*.56,H*.89);
+  }
   const target=dy<0?MAX_SPEED:dy>0?MIN_SPEED:CRUISE;
   this.speed+=clamp(target-this.speed,-112.5*dt,112.5*dt);
   this.camera+=this.speed*dt;this.invulnerable=Math.max(0,this.invulnerable-dt);
@@ -201,6 +213,14 @@ class Game{
   }
   this.refueling=false;
   const probes=[{x:0,y:-11,r:2},{x:0,y:10,r:4},{x:-5,y:0,r:2},{x:5,y:0,r:2}];
+  // Check every segment of a fast swipe, including bends and reversals.
+  // A touch cannot teleport through an island, bank, bridge or enemy.
+  if(drag&&this.invulnerable<=0)for(const p of path){
+   const world=this.camera+H-p.y;
+   const land=probes.some(q=>!this.river.water(p.x+q.x,world-q.y,q.r));
+   const hit=land?null:this.objects.find(o=>!o.dead&&o.type!=='house'&&o.type!=='fuel'&&Math.abs(o.world-world)<=o.h/2+11&&Math.abs(o.x-p.x)<=o.w/2+6);
+   if(land||hit){this.player.x=p.x;this.player.y=p.y;this.kill(land?'Zderzenie z brzegiem':hit.type==='bridge'?'Most nie został zniszczony':'Zderzenie z przeciwnikiem');return}
+  }
   if(this.invulnerable<=0){
    if(probes.some(p=>!this.river.water(this.player.x+p.x,playerWorld-p.y,p.r))){this.kill('Zderzenie z brzegiem');return}
   }
@@ -372,9 +392,10 @@ class GraphicsRenderer{
 }
 
 const $=id=>document.getElementById(id),sound=new Sound(),game=new Game(k=>sound.play(k)),renderer=new GraphicsRenderer($('game'));
-const keyboard=new Set(),touches=new Map(),stick={pointer:null,x:0,y:0,originX:0,originY:0};let overlayMode='',lastStatus='',lastUI=0;
-function input(){const keys=new Set([...keyboard,...touches.values()]);return{left:keys.has('ArrowLeft')||keys.has('KeyA')||stick.x<-.24,right:keys.has('ArrowRight')||keys.has('KeyD')||stick.x>.24,up:keys.has('ArrowUp')||keys.has('KeyW')||stick.y<-.24,down:keys.has('ArrowDown')||keys.has('KeyS')||stick.y>.24,fire:keys.has('Space')}}
-function clearInput(){keyboard.clear();const ids=[...touches.keys()];touches.clear();for(const id of ids)if($('fireZone').hasPointerCapture(id))$('fireZone').releasePointerCapture(id);resetStick()}
+const keyboard=new Set(),touches=new Map(),drag={pointer:null,lastX:0,lastY:0,moves:[]};let overlayMode='',lastStatus='',lastUI=0;
+function input(){const keys=new Set([...keyboard,...touches.values()]),value={left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),up:keys.has('ArrowUp')||keys.has('KeyW'),down:keys.has('ArrowDown')||keys.has('KeyS'),fire:keys.has('Space')};if(drag.pointer!==null||drag.moves.length)value.drag=drag.moves.slice();return value}
+function consumeInput(){const value=input();drag.moves=[];return value}
+function clearInput(){keyboard.clear();const ids=[...touches.keys()];touches.clear();for(const id of ids)if($('fireZone').hasPointerCapture(id))$('fireZone').releasePointerCapture(id);resetDrag(true)}
 function begin(){clearInput();sound.unlock();game.start();sync(true);$('start').blur()}
 function pause(){clearInput();game.pause();sync(true)}
 function sync(force=false){
@@ -417,25 +438,29 @@ function setGraphics(mode,persist=true){
 for(const [id,mode] of [['graphicsClassic','classic'],['graphicsModern','modern']])$(id).addEventListener('click',e=>{setGraphics(mode);if(e.detail)$(id).blur()});
 let savedGraphics='classic';try{savedGraphics=localStorage.getItem('river-raid-graphics-v1')||'classic'}catch{}setGraphics(savedGraphics,false);
 
-// Invisible halves translate gestures into the original digital controls.
-// A floating origin allows a thumb to begin anywhere, then reverse without
-// dragging all the way back to its first contact point.
-function resetStick(){
- const pointer=stick.pointer;stick.pointer=null;stick.x=stick.y=0;
+// Relative direct manipulation: preserve the offset to the plane on contact,
+// then match each finger displacement in CSS pixels. No joystick/dead zone.
+function resetDrag(discard=false){
+ const pointer=drag.pointer;drag.pointer=null;if(discard)drag.moves=[];
  if(pointer!==null&&$('steerZone').hasPointerCapture(pointer))$('steerZone').releasePointerCapture(pointer);
 }
-function updateStick(e){
- const radius=40,dx=e.clientX-stick.originX,dy=e.clientY-stick.originY,distance=Math.hypot(dx,dy),ratio=distance>radius?radius/distance:1;
- stick.x=dx*ratio/radius;stick.y=dy*ratio/radius;
- if(distance>radius){stick.originX=e.clientX-stick.x*radius;stick.originY=e.clientY-stick.y*radius}
+function updateDrag(e){
+ if(game.mode!=='playing'){resetDrag(true);return}
+ const rect=$('game').getBoundingClientRect();if(!rect.width||!rect.height)return;
+ const coalesced=e.getCoalescedEvents?e.getCoalescedEvents():[],samples=coalesced.length?coalesced:[e];
+ for(const point of samples){
+  const dx=(point.clientX-drag.lastX)*W/rect.width,dy=(point.clientY-drag.lastY)*H/rect.height;
+  if(dx||dy)drag.moves.push({dx,dy});drag.lastX=point.clientX;drag.lastY=point.clientY;
+ }
 }
 $('steerZone').addEventListener('pointerdown',e=>{
- if(e.button!==0||stick.pointer!==null||game.mode!=='playing')return;
- e.preventDefault();sound.unlock();stick.pointer=e.pointerId;stick.originX=e.clientX;stick.originY=e.clientY;stick.x=stick.y=0;
+ if(e.button!==0||drag.pointer!==null||game.mode!=='playing')return;
+ e.preventDefault();sound.unlock();drag.pointer=e.pointerId;drag.lastX=e.clientX;drag.lastY=e.clientY;
  $('steerZone').setPointerCapture(e.pointerId);
 });
-$('steerZone').addEventListener('pointermove',e=>{if(e.pointerId!==stick.pointer)return;e.preventDefault();updateStick(e)});
-for(const type of ['pointerup','pointercancel','lostpointercapture'])$('steerZone').addEventListener(type,e=>{if(e.pointerId===stick.pointer)resetStick()});
+$('steerZone').addEventListener('pointermove',e=>{if(e.pointerId!==drag.pointer)return;e.preventDefault();updateDrag(e)});
+$('steerZone').addEventListener('pointerup',e=>{if(e.pointerId!==drag.pointer)return;e.preventDefault();updateDrag(e);resetDrag()});
+for(const type of ['pointercancel','lostpointercapture'])$('steerZone').addEventListener(type,e=>{if(e.pointerId===drag.pointer)resetDrag(true)});
 $('fireZone').addEventListener('pointerdown',e=>{
  if(e.button!==0||game.mode!=='playing')return;e.preventDefault();sound.unlock();
  touches.set(e.pointerId,'Space');$('fireZone').setPointerCapture(e.pointerId);
@@ -488,9 +513,9 @@ document.addEventListener('fullscreenchange',()=>{clearInput();phoneLayout();$('
 settingsSync();phoneLayout();
 
 let previous=performance.now(),accumulator=0;
-function frame(now){const elapsed=Math.min(.1,(now-previous)/1000);previous=now;accumulator+=elapsed;while(accumulator>=STEP){game.tick(STEP,input());accumulator-=STEP}renderer.draw(game);if(now-lastUI>80){sync();lastUI=now}requestAnimationFrame(frame)}sync(true);renderer.draw(game);requestAnimationFrame(frame);
+function frame(now){const elapsed=Math.min(.1,(now-previous)/1000);previous=now;accumulator+=elapsed;while(accumulator>=STEP){game.tick(STEP,consumeInput());accumulator-=STEP}renderer.draw(game);if(now-lastUI>80){sync();lastUI=now}requestAnimationFrame(frame)}sync(true);renderer.draw(game);requestAnimationFrame(frame);
 // Opt-in inspection interface for the local verification suite only.
-if(new URLSearchParams(location.search).has('test'))window.__rr={game,Game,River,LFSR,renderer,begin,pause,sync,input,clearInput,constants:{W,H,SECTION,STEP,BURN,REFILL,POINTS,CRUISE,MIN_SPEED,MAX_SPEED,INITIAL_LIVES,MAX_LIVES}};
+if(new URLSearchParams(location.search).has('test'))window.__rr={game,Game,River,LFSR,renderer,begin,pause,sync,input,consumeInput,clearInput,constants:{W,H,SECTION,STEP,BURN,REFILL,POINTS,CRUISE,MIN_SPEED,MAX_SPEED,INITIAL_LIVES,MAX_LIVES}};
 </script>
 </body>
 </html>

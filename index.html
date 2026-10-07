@@ -532,7 +532,7 @@ class ModernRenderer{
 // Perspective is presentation only. The camera reads the existing plane,
 // terrain and objects; it never moves them or requests more map sections.
 class CockpitRenderer{
- constructor(canvas){this.ctx=canvas.getContext('2d',{alpha:false})}
+ constructor(canvas){this.ctx=canvas.getContext('2d',{alpha:false});this.scoreRolls=new WeakMap()}
  // The eye is eight map units behind the player, rather than 32. At the
  // existing ship collision distance (8 + 11), its hull reaches the nose.
  view(g){return {world:g.camera+H-g.player.y,x:g.player.x,horizon:82+(g.player.y-354)*.04,altitude:48+(354-g.player.y)*.03,near:8,focal:144,far:g.player.y}}
@@ -640,6 +640,102 @@ class CockpitRenderer{
    const q=this.project(v,o.x,d,10),w=24*s,h=10*s;c.fillStyle='#dbddb7';c.fillRect(q.x-w/2,q.y,w,h);this.polygon(c,[[q.x-w*.6,q.y],[q.x,q.y-6*s],[q.x+w*.6,q.y]],'#353d2c');c.fillStyle='#526d35';c.fillRect(q.x-w*.32,q.y+3*s,w*.18,3*s);c.fillRect(q.x+w*.14,q.y+3*s,w*.18,3*s);
   }
  }
+ radarContacts(g){
+  const world=g.camera+H-g.player.y,contacts=[];
+  for(const o of g.objects){
+   if(o.dead||!['ship','heli','plane','bridge'].includes(o.type))continue;
+   const depth=o.world-world,dx=o.x-g.player.x,reach=o.h/2+11;
+   // The rear edge uses the same envelope as the game's collision checks.
+   if(depth< -reach||depth>220)continue;
+   contacts.push({object:o,dx,depth,width:o.w,type:o.type,danger:Math.abs(depth)<=reach,overlap:Math.abs(depth)<=reach&&Math.abs(dx)<=o.w/2+6});
+  }
+  return contacts;
+ }
+ radar(g){const c=this.ctx,cx=160,cy=359;
+  const rounded=(size,radius,color)=>{c.fillStyle=color;for(let row=0;row<size;row++){const edge=Math.min(row,size-1-row),inset=edge>=radius?0:Math.ceil(radius-Math.sqrt(radius*radius-(radius-edge-.5)**2));c.fillRect(cx-(size-1)/2+inset,cy-(size-1)/2+row,size-inset*2,1)}};
+  rounded(51,5,'#101e17');rounded(47,4,'#859775');rounded(45,3,'#0e281c');rounded(41,2,'#143520');
+  const left=cx-20,top=cy-20,size=41,world=g.camera+H-g.player.y,kx=size/W,ky=size/260;
+  const px=x=>Math.round(left+x*kx),py=w=>Math.round(top+(world+220-w)*ky);
+  const warnings=new Set(this.radarContacts(g).filter(o=>o.danger).map(o=>o.object));
+  c.save();c.beginPath();c.roundRect(left,top,size,size,2);c.clip();c.fillStyle='#070b08';c.fillRect(left,top,size,size);
+  // The actual river on a dark navigation screen: 220 units ahead, 40 behind.
+  // The rear strip still includes each enemy's entire collision envelope.
+  for(let row=0;row<size;row++){
+   const t=g.river.terrain(world+220-(row+.5)/ky),a=px(t.left),b=px(t.right);
+   c.fillStyle='#0b120d';c.fillRect(left,top+row,a-left,1);c.fillRect(b,top+row,left+size-b,1);
+   c.fillStyle='#526359';c.fillRect(a-1,top+row,1,1);c.fillRect(b,top+row,1,1);
+   c.fillStyle='#d7e3d8';c.fillRect(a,top+row,1,1);c.fillRect(b-1,top+row,1,1);
+   if(t.islandRight>t.islandLeft){const il=px(t.islandLeft),ir=px(t.islandRight);c.fillStyle='#0b120d';c.fillRect(il,top+row,ir-il,1);c.fillStyle='#d7e3d8';c.fillRect(il,top+row,1,1);c.fillRect(ir-1,top+row,1,1)}
+  }
+  for(const o of g.objects){
+   const depth=o.world-world;if(o.dead||depth>220+o.h/2||depth< -40-o.h/2)continue;
+   const x=px(o.x),y=py(o.world),w=Math.max(2,Math.round(o.w*kx)),h=Math.max(2,Math.round(o.h*ky));
+   if(o.type==='bridge'){c.strokeStyle='#d7e3d8';c.lineWidth=1;c.strokeRect(x-Math.floor(w/2)+.5,y-Math.floor(h/2)+.5,w-1,h-1)}
+   else if(o.type==='fuel'){c.fillStyle='#d7e3d8';c.fillRect(x-1,y-Math.floor(h/2),2,h);c.fillStyle='#899b8d';c.fillRect(x-1,y,2,1)}
+   else if(o.type==='ship'){c.fillStyle='#d7e3d8';c.fillRect(x-2,y,5,2);c.fillRect(x-1,y-1,3,1)}
+   else if(o.type==='heli'){c.fillStyle='#d7e3d8';c.fillRect(x-1,y-1,3,3);c.fillRect(x-2,y-2,5,1);c.fillRect(x,y+2,1,1);c.fillStyle='#070b08';c.fillRect(x,y,1,1)}
+   else if(o.type==='plane'){c.fillStyle='#d7e3d8';c.fillRect(x-2,y,5,1);c.fillRect(x,y-1,1,3);c.fillRect(x+(o.dir<0?1:-1),y-1,1,3)}
+   else if(o.type==='house'){c.fillStyle='#d7e3d8';c.fillRect(x-1,y,3,2);c.fillRect(x,y-1,1,1)}
+   if(warnings.has(o)){c.strokeStyle='#ff7967';c.lineWidth=1;c.strokeRect(x-Math.max(2,Math.floor(w/2))-1+.5,y-Math.max(1,Math.floor(h/2))-1+.5,Math.max(4,w)+2,Math.max(3,h)+2)}
+  }
+  if(g.bullet){const y=py(g.camera+H-g.bullet.y);c.fillStyle='#efda64';c.fillRect(px(g.bullet.x),y-1,1,2)}
+  if(g.mode!=='dying'&&g.mode!=='gameover'){
+   const x=px(g.player.x),y=py(world);c.fillStyle='#ecdb4f';c.fillRect(x,y-2,1,5);c.fillRect(x-1,y,3,1);c.fillRect(x-1,y+2,3,1);
+  }
+  c.restore();
+ }
+ scoreWheels(g){
+  const digits=String(Math.max(0,Math.floor(g.score))).padStart(6,'0');let e=this.scoreRolls.get(g);
+  if(!e||g.time<e.time||g.score<e.score||g.player!==e.player||digits.length!==e.digits.length){e={score:g.score,digits,player:g.player,time:g.time,start:g.time,from:[...digits].map(Number),target:[...digits].map(Number)};this.scoreRolls.set(g,e)}
+  const progress=clamp((g.time-e.start)/.6,0,1),ease=1-Math.pow(1-progress,3);
+  if(g.score!==e.score){
+   e.from=e.from.map((from,i)=>from+(e.target[i]-from)*ease-Math.floor(e.target[i]/10)*10);
+   e.target=e.target.map((target,i)=>target%10+(Number(digits[i])-Number(e.digits[i])+10)%10);
+   e.score=g.score;e.digits=digits;e.start=g.time;
+  }
+  e.time=g.time;const t=1-Math.pow(1-clamp((g.time-e.start)/.6,0,1),3);return e.from.map((from,i)=>from+(e.target[i]-from)*t);
+ }
+ scoreCounter(g){const c=this.ctx,wheels=this.scoreWheels(g),spacing=Math.floor(60/wheels.length),unit=spacing>=8?2:1,left=160-spacing*wheels.length/2;
+  c.fillStyle='#101e17';c.fillRect(126,389,68,24);c.fillStyle='#66795f';c.fillRect(128,393,64,16);c.fillStyle='#0b140e';c.fillRect(129,394,62,14);
+  wheels.forEach((position,i)=>{const x=left+i*spacing,whole=Math.floor(position),fraction=position-whole,offset=(spacing-1-3*unit)/2;
+   c.fillStyle='#29372b';c.fillRect(x,394,spacing-1,14);c.save();c.beginPath();c.rect(x,394,spacing-1,14);c.clip();
+   for(let j=0;j<2;j++)pixelText(c,((whole+j)%10+10)%10,Math.round(x+offset),Math.round(396+j*14-fraction*14),unit,'#eee6b0');
+   c.fillStyle='#07110c88';c.fillRect(x,394,spacing-1,1);c.fillRect(x,407,spacing-1,1);c.fillStyle='#82907a40';c.fillRect(x,401,spacing-1,1);c.restore();
+  });
+ }
+ lifeLights(g){const c=this.ctx;
+  for(let i=0;i<MAX_LIVES;i++){const x=213+i%5*21,y=i<5?396:405;c.fillStyle=i<g.lives?'#c5df8a':'#26382a';c.fillRect(x,y-3,2,7);c.fillRect(x-3,y,8,2);c.fillRect(x-1,y+3,4,1)}
+ }
+ speedReading(g){const speed=clamp(g.speed,MIN_SPEED,MAX_SPEED);return Math.round(speed<=CRUISE?200+300*(speed-MIN_SPEED)/(CRUISE-MIN_SPEED):500+300*(speed-CRUISE)/(MAX_SPEED-CRUISE))}
+ flightInstruments(g,bank){const c=this.ctx;
+  // Matching circular instruments, with a pixel-stepped rim and attitude face.
+  const hx=100,hy=364;
+  for(const [r,color] of [[19,'#101e17'],[17,'#91a082'],[15,'#28a8cf']]){
+   c.fillStyle=color;for(let y=-r;y<=r;y++){const half=Math.floor(Math.sqrt(r*r-y*y));c.fillRect(hx-half,hy+y,half*2+1,1)}
+  }
+  c.save();c.beginPath();
+  for(let y=-15;y<=15;y++){const half=Math.floor(Math.sqrt(225-y*y));c.rect(hx-half,hy+y,half*2+1,1)}
+  c.clip();
+  c.translate(hx,hy);c.rotate(-clamp(bank,-1,1)*.42);
+  c.fillStyle='#28a8cf';c.fillRect(-36,-36,72,36);c.fillStyle='#b5703e';c.fillRect(-36,0,72,36);
+  c.fillStyle='#e2e1ac';c.fillRect(-36,0,72,1);
+  for(const y of [-10,-5,5,10]){const w=Math.abs(y)===10?12:8;c.fillRect(-w/2,y,w,1);if(Math.abs(y)===10){c.fillRect(-w/2,y-1,1,3);c.fillRect(w/2-1,y-1,1,3)}}
+  c.restore();
+  c.fillStyle='#ece59a';c.fillRect(hx-12,hy,8,2);c.fillRect(hx+5,hy,8,2);c.fillRect(hx-1,hy+1,3,3);
+  c.fillStyle='#f0e6be';c.fillRect(hx-1,hy-14,3,2);
+  // Display scale: minimum 200, cruise 500, maximum 800; physics is unchanged.
+  const sx=220,sy=364,reading=this.speedReading(g);
+  for(const [r,color] of [[19,'#101e17'],[17,'#91a082'],[15,'#14251b']]){
+   c.fillStyle=color;for(let y=-r;y<=r;y++){const half=Math.floor(Math.sqrt(r*r-y*y));c.fillRect(sx-half,sy+y,half*2+1,1)}
+  }
+  const start=Math.PI*5/6,sweep=Math.PI*4/3;
+  c.strokeStyle='#d5d9ae';c.lineWidth=1;
+  for(let i=0;i<=6;i++){const a=start+sweep*i/6,inner=i%2===0?10:12;c.beginPath();c.moveTo(Math.round(sx+Math.cos(a)*inner),Math.round(sy+Math.sin(a)*inner));c.lineTo(Math.round(sx+Math.cos(a)*14),Math.round(sy+Math.sin(a)*14));c.stroke()}
+  const angle=start+sweep*(reading-200)/600;
+  c.strokeStyle='#ece59a';c.lineWidth=1;c.beginPath();c.moveTo(sx,sy);c.lineTo(Math.round(sx+Math.cos(angle)*11),Math.round(sy+Math.sin(angle)*11));c.stroke();
+  c.fillStyle='#ece59a';c.fillRect(sx-1,sy-1,3,3);
+  pixelText(c,String(reading),sx-5,sy+8,1,'#dce0aa');
+ }
  cabin(g,bank){const c=this.ctx;
   // A single fighter canopy arch, rasterized as two-pixel steps.
   // Glass stays transparent both above and below this narrow arch.
@@ -651,18 +747,22 @@ class CockpitRenderer{
   }
   c.fillStyle='#eff0b0';for(const [x,y,w,h] of [[147,176,8,1],[165,176,8,1],[160,163,1,8],[160,182,1,7]])c.fillRect(x,y,w,h);
   this.polygon(c,[[123,359],[139,335],[181,335],[197,359]],'#899484');c.fillStyle='#c3c7a8';c.fillRect(141,335,38,3);c.fillStyle='#536649';c.fillRect(154,339,12,17);
-  this.polygon(c,[[0,370],[57,350],[111,357],[209,357],[263,350],[320,370],[320,416],[0,416]],'#15251f');this.polygon(c,[[0,378],[58,360],[110,366],[210,366],[262,360],[320,378],[320,416],[0,416]],'#475b48');c.fillStyle='#a2ad82';c.fillRect(70,365,180,3);
-  c.fillStyle='#111d1a';c.fillRect(15,378,122,33);c.fillRect(142,378,67,33);c.fillRect(216,378,89,33);
+  // Keep clearance above the radar and above the lower instrument strip.
+  // The plateau remains twice the radar housing's width, with fixed side edges.
+  for(let x=0;x<W;x+=2){const t=Math.max(0,(Math.abs(x+1-160)-51)/109),top=Math.round(328+51*t);
+   c.fillStyle='#101e17';c.fillRect(x,top,2,H-top);c.fillStyle='#74846c';c.fillRect(x,top+2,2,2);c.fillStyle='#2c4231';c.fillRect(x,top+4,2,H-top-4);
+  }
+  c.fillStyle='#203426';c.fillRect(0,386,W,30);c.fillStyle='#64755b';c.fillRect(0,386,W,1);
+  this.radar(g);
+  c.fillStyle='#101e17';c.fillRect(5,387,118,28);c.fillRect(197,387,118,28);
   // The original E / 1/2 / F face, including its yellow moving marker.
-  c.fillStyle='#898c86';c.fillRect(20,383,112,24);drawFuelBacklight(c,22,385,108,20,g);c.strokeStyle='#090e0c';c.lineWidth=2;c.strokeRect(20,383,112,24);
-  pixelText(c,'E',26,395,2,'#090e0c');pixelText(c,'F',116,395,2,'#090e0c');pixelText(c,'1',65,386,1,'#090e0c');pixelText(c,'2',79,398,1,'#090e0c');
-  for(const x of [29,75,122]){c.fillStyle='#090e0c';c.fillRect(x,384,2,4)}
-  c.beginPath();c.moveTo(67,402);c.lineTo(83,388);c.stroke();c.fillStyle=g.fuel<25?'#f27953':'#ece95a';c.fillRect(Math.round(29+93*g.fuel/100)-1,389,3,16);
-  c.textAlign='left';c.font='bold 6px monospace';c.fillStyle='#dce0aa';c.fillText('PUNKTY',147,386);pixelText(c,String(g.score).padStart(6,'0'),147,393,2,'#ece59a');
-  c.fillText('ZYCIA',222,386);this.polygon(c,[[224,397],[230,395],[231,391],[233,391],[234,395],[240,397],[240,399],[234,398],[233,403],[231,403],[230,398],[224,399]],'#ece59a');
-  c.font='bold 9px monospace';c.fillText('x',247,402);pixelText(c,g.lives,258,393,2,'#ece59a');
-  c.fillStyle='#a4c3a0';c.fillRect(146,371,28,1);const bx=Math.round(160+bank*12);c.fillStyle='#e8df99';c.fillRect(bx-4,370,9,2);
-  if(g.refueling){c.fillStyle='#b3d987';c.fillRect(128,372,4,3)}
+  c.fillStyle='#898c86';c.fillRect(10,389,112,24);drawFuelBacklight(c,12,391,108,20,g);c.strokeStyle='#090e0c';c.lineWidth=2;c.strokeRect(10,389,112,24);
+  pixelText(c,'E',16,401,2,'#090e0c');pixelText(c,'F',106,401,2,'#090e0c');pixelText(c,'1',55,392,1,'#090e0c');pixelText(c,'2',69,404,1,'#090e0c');
+  for(const x of [19,65,112]){c.fillStyle='#090e0c';c.fillRect(x,390,2,4)}
+  c.beginPath();c.moveTo(57,408);c.lineTo(73,394);c.stroke();c.fillStyle=g.fuel<25?'#f27953':'#ece95a';c.fillRect(Math.round(19+93*g.fuel/100)-1,395,3,16);
+  this.scoreCounter(g);this.lifeLights(g);
+  this.flightInstruments(g,bank);
+  if(g.refueling){c.fillStyle='#b3d987';c.fillRect(119,380,4,3)}
  }
  draw(g,bank=0){const c=this.ctx,v=this.view(g);c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over';c.imageSmoothingEnabled=false;c.fillStyle='#15251f';c.fillRect(0,0,W,H);
   c.save();c.translate(W/2,H*.45);c.rotate(-bank*.045);c.translate(-W/2,-H*.45);this.terrain(g,v);

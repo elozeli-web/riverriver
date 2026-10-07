@@ -80,6 +80,12 @@ body.desktop-ui{position:fixed;inset:0;width:100%;height:var(--app-height,100dvh
 .phone-ui .gesture-dock .touch-zones{display:flex;position:absolute;inset:0}.gesture-dock .touch-zone{position:relative}.gesture-dock #steerZone{border-right:1px solid #ffffff12}.gesture-dock .touch-zone::after{position:absolute;left:0;right:0;bottom:14px;text-align:center;font:10px Arial,sans-serif;letter-spacing:1px;color:#a1b4a2;pointer-events:none;content:'PRZESUWAJ · LOT'}.gesture-dock #fireZone::after{content:'PRZYTRZYMAJ · OGIEŃ'}.modern .gesture-dock .touch-zone::after{color:#90b7ca}
 @media(orientation:landscape){.phone-ui .machine{grid-template-areas:'bar score fuel' 'screen screen screen' 'dock dock dock';grid-template-rows:48px minmax(0,1fr) 88px}.gesture-dock .touch-zone::after{bottom:10px}}
 </style>
+<style>
+#mobileRetroGauge{display:none}.phone-ui #mobileRetroGauge{display:block;width:100%;height:30px;image-rendering:pixelated;background:#898c86}.phone-ui.modern #mobileRetroGauge{background:#233748}.phone-ui .instrument-panel .fuel-label,.phone-ui .instrument-panel .fuel-track{display:none}.phone-ui .instrument-panel{padding-top:0}.phone-ui .flight-data{margin-top:4px}
+</style>
+<style>
+.cockpit{--bg:#101c18;--accent:#ece59a;--ink:#e4e5c4;--line:#455c43}.cockpit .viewport canvas{image-rendering:pixelated}.cockpit .scanlines{opacity:.045}.cockpit .graphics-switch button[aria-pressed=true]{background:#354c35;border-color:#b2bc7a;color:#f7eeae}.cockpit .graphics-switch b{background:#e5de8e}.desktop-ui .toolbar{margin-top:42px}.settings-choices{display:grid;grid-template-columns:1fr 1fr}.settings-choices #menuCockpit{grid-column:1/-1}.phone-ui:has(#mobileSettings[open]){touch-action:pan-y}.mobile-settings{touch-action:pan-y}
+</style>
 </head>
 <body>
 <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true"></span>ARCADE ARCHIVE</div><div class="edition"><span class="online-dot"></span>1982 / WERSJA PRZEGLĄDARKOWA</div></header>
@@ -87,18 +93,18 @@ body.desktop-ui{position:fixed;inset:0;width:100%;height:var(--app-height,100dvh
 <section class="intro"><div><p class="eyebrow">MISJA 01 · NAD WROGIM TERYTORIUM</p><h1>RIVER<br><span>RAID</span></h1><p class="lead">Rzeka wyznacza trasę.<br>Ty decydujesz, jak daleko dolecisz.</p></div><div class="rule"><div class="caption">STEROWANIE</div><div class="keys"><span><kbd class="key">←</kbd> <kbd class="key">→</kbd></span><span>Skręt samolotu</span><span><kbd class="key">↑</kbd> <kbd class="key">↓</kbd></span><span>Pozycja i prędkość</span><kbd class="key">SPACJA</kbd><span>Strzał / przytrzymaj</span><kbd class="key">P / ESC</kbd><span>Pauza</span><kbd class="key">R</kbd><span>Nowa gra</span></div><p class="flight-note">Możesz też użyć WASD.<br>↑ przyspiesza · ↓ zwalnia</p><div class="side-footer">JEDEN PILOT. JEDNA RZEKA.<br>ŻADNEGO KOŃCA W ZASIĘGU WZROKU.</div></div></section>
 <section class="machine" aria-label="Gra River Raid">
 <div id="mobileBar" class="mobile-bar"><div class="mobile-title">RIVER RAID<span id="mobileMode">KLASYCZNA</span></div><button class="app-icon" id="mobileFullscreen" type="button" aria-label="Pełny ekran"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button><button class="app-icon" id="mobilePause" type="button" aria-label="Pauza" disabled>Ⅱ</button><button class="app-icon" id="mobileMenu" type="button" aria-label="Ustawienia"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16M8 3v6m8 0v6m-6 0v6"/></svg></button></div>
-<div class="graphics-switch" role="group" aria-label="Tryb grafiki"><span>GRAFIKA</span><button type="button" id="graphicsClassic" aria-pressed="true">Klasyczna</button><button type="button" id="graphicsModern" aria-pressed="false">Nowoczesna <b>HD</b></button></div>
+<div class="graphics-switch" role="group" aria-label="Tryb grafiki"><span>GRAFIKA</span><button type="button" id="graphicsClassic" aria-pressed="true">Klasyczna</button><button type="button" id="graphicsModern" aria-pressed="false">Nowoczesna <b>HD</b></button><button type="button" id="graphicsCockpit" aria-pressed="false">Kokpit <b>8 BIT</b></button></div>
 <div class="scoreboard"><div><div class="label">PUNKTY</div><div class="score" id="score">000000</div></div><div class="record"><div class="label">REKORD</div><div class="score" id="best">000000</div></div></div>
 <div class="screen-well"><div class="viewport"><canvas id="game" width="320" height="416" role="img" aria-label="Pole gry: samolot, rzeka, przeciwnicy i bazy paliwowe"></canvas><div class="scanlines"></div><div class="overlay" id="overlay"><div class="overlay-inner"><div class="tag" id="overlayTag">GOTOWOŚĆ DO STARTU</div><h2 id="overlayTitle">Obierz kurs na północ.</h2><p id="overlayText">Omijaj brzegi, zestrzeliwuj przeciwników i pilnuj paliwa. Każdy most otwiera kolejny etap.</p><p class="mobile-instruction">Przeciągaj samolot palcem po lewej.<br>Przytrzymaj prawą stronę: ogień.</p><button type="button" class="primary" id="start">ROZPOCZNIJ LOT →</button><small id="overlayHint">lub naciśnij Enter / Spację</small></div></div></div>
 
 </div>
-<div class="instrument-panel"><div class="fuel-label"><span>PALIWO <span id="refuel"></span></span><span id="fuelValue">100%</span></div><div class="fuel-track" id="fuelTrack" role="meter" aria-label="Poziom paliwa" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div class="fuel-fill" id="fuelFill"></div></div><div class="flight-data"><span>ETAP <strong id="stage">01</strong></span><span aria-label="Pozostałe życia" id="lives"><span class="life-plane">▲▲▲</span></span></div><div class="status"><span id="status" aria-live="polite">OCZEKIWANIE NA PILOTA</span><span id="speed">PRĘDKOŚĆ 1.0×</span></div></div>
+<div class="instrument-panel"><canvas id="mobileRetroGauge" width="232" height="64" role="meter" aria-label="Paliwo: E pusto, połowa, F pełny" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"></canvas><div class="fuel-label"><span>PALIWO <span id="refuel"></span></span><span id="fuelValue">100%</span></div><div class="fuel-track" id="fuelTrack" role="meter" aria-label="Poziom paliwa" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div class="fuel-fill" id="fuelFill"></div></div><div class="flight-data"><span>ETAP <strong id="stage">01</strong></span><span aria-label="Pozostałe życia" id="lives"><span class="life-plane">▲▲▲</span></span></div><div class="status"><span id="status" aria-live="polite">OCZEKIWANIE NA PILOTA</span><span id="speed">PRĘDKOŚĆ 1.0×</span></div></div>
 <div class="retro-panel" id="retroPanel"><canvas id="retroGauge" width="320" height="72" role="meter" aria-label="Paliwo: E pusto, połowa, F pełny" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"></canvas></div><div class="gesture-dock" aria-label="Pole sterowania pod grą"><div class="touch-zones" aria-label="Sterowanie dotykowe"><div class="touch-zone" id="steerZone" role="group" aria-label="Lewa połowa: przeciągaj samolot ruchem palca. Zatrzymaj palec, aby zatrzymać samolot."></div><div class="touch-zone" id="fireZone" role="group" aria-label="Prawa połowa: dotknij i przytrzymaj, aby strzelać."></div></div></div>
 <div class="toolbar"><button type="button" class="tool" id="pause" disabled>Pauza · P</button><button type="button" class="tool" id="restart">Nowa gra · R</button><button type="button" class="tool" id="sound" aria-pressed="false">Dźwięk: wył.</button></div>
 </section>
 <aside class="right"><div><div class="caption">ZADANIE PILOTA</div><p class="mission">Leć w górę rzeki. Przejście przez most wymaga celnego strzału. Po utracie samolotu wrócisz na początek etapu.</p></div><div class="targets"><div class="caption">CELE I PUNKTACJA</div><div class="target-list"><div class="target"><canvas data-sprite="ship" width="40" height="32"></canvas><span>Statek</span><em>30</em></div><div class="target"><canvas data-sprite="heli" width="40" height="32"></canvas><span>Śmigłowiec</span><em>60</em></div><div class="target"><canvas data-sprite="fuel" width="40" height="32"></canvas><span>Baza FUEL</span><em>80</em></div><div class="target"><canvas data-sprite="plane" width="40" height="32"></canvas><span>Odrzutowiec</span><em>100</em></div><div class="target"><canvas data-sprite="bridge" width="40" height="32"></canvas><span>Most</span><em>500</em></div></div></div><div class="tip"><strong>NIE STRZELAJ DO ZAPASÓW</strong>Przeleć nad bazą FUEL, żeby zatankować. Zwolnij, aby uzupełnić więcej paliwa. Zniszczona baza daje punkty, ale nie zatankuje samolotu.</div><p class="bonus">+1 życie za każde 10 000 pkt.<br>Rekord zapisuje się w tej przeglądarce.</p></aside>
 </main>
-<dialog class="mobile-settings" id="mobileSettings" aria-labelledby="settingsTitle"><div class="settings-heading"><h2 id="settingsTitle">Ustawienia</h2><button class="app-icon" id="closeSettings" type="button" aria-label="Zamknij ustawienia"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div><span class="settings-label">Grafika</span><div class="settings-choices" role="group" aria-label="Wybór grafiki"><button id="menuClassic" type="button" aria-pressed="true">Klasyczna</button><button id="menuModern" type="button" aria-pressed="false">Nowoczesna HD</button></div><button class="settings-action" id="menuSound" type="button" aria-pressed="false">Dźwięk: wyłączony</button><button class="settings-action danger" id="menuRestart" type="button">Rozpocznij nową grę</button><button class="settings-done" id="settingsDone" type="button">Gotowe</button></dialog>
+<dialog class="mobile-settings" id="mobileSettings" aria-labelledby="settingsTitle"><div class="settings-heading"><h2 id="settingsTitle">Ustawienia</h2><button class="app-icon" id="closeSettings" type="button" aria-label="Zamknij ustawienia"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div><span class="settings-label">Grafika</span><div class="settings-choices" role="group" aria-label="Wybór grafiki"><button id="menuClassic" type="button" aria-pressed="true">Klasyczna</button><button id="menuModern" type="button" aria-pressed="false">Nowoczesna HD</button><button id="menuCockpit" type="button" aria-pressed="false">Kokpit · 8 bit</button></div><button class="settings-action" id="menuSound" type="button" aria-pressed="false">Dźwięk: wyłączony</button><button class="settings-action danger" id="menuRestart" type="button">Rozpocznij nową grę</button><button class="settings-done" id="settingsDone" type="button">Gotowe</button></dialog>
 <footer class="bottom"><span>Oryginał: Carol Shaw / Activision, 1982.<br>Adaptacja na podstawie analiz ASM: Thomas Jentzsch i Matt Jernigan.</span><span>Działa offline · Bez instalacji<br><a href="CZYTAJ-MNIE.txt" target="_blank">Instrukcja i informacje o porcie ↗</a></span></footer>
 <script>
 'use strict';
@@ -292,7 +298,13 @@ function drawSprite(ctx,name,x,y,scaleX=2,scaleY=2,flip=false,time=0){
 const pixelLetters={F:['111','100','110','100','100'],U:['101','101','101','101','111'],E:['111','100','110','100','111'],L:['100','100','100','100','111'],0:['111','101','101','101','111'],1:['010','110','010','010','111'],2:['111','001','111','100','111'],3:['111','001','111','001','111'],4:['101','101','111','001','001'],5:['111','100','111','001','111'],6:['111','100','111','101','111'],7:['111','001','010','010','010'],8:['111','101','111','101','111'],9:['111','101','111','001','111']};
 function pixelText(c,text,x,y,s,color){c.fillStyle=color;for(const letter of String(text)){const rows=pixelLetters[letter];if(rows)for(let r=0;r<5;r++)for(let p=0;p<3;p++)if(rows[r][p]==='1')c.fillRect(x+p*s,y+r*s,s,s);x+=4*s}}
 function drawClassicFuel(c,x,y,sx,sy){c.save();const left=Math.round(x-4*sx),top=Math.round(y-11.5*sy);c.fillStyle='#ebded0';c.fillRect(left,top,8*sx,23*sy);c.fillStyle='#e45e53';c.fillRect(left,top,8*sx,6*sy);c.fillRect(left,top+12*sy,8*sx,5*sy);c.fillStyle='#e45e53';c.fillRect(left+sx,top-sy,6*sx,sy);c.translate(left+2*sx,top+sy);c.scale(sx,sy);for(const [i,letter] of [...'FUEL'].entries())pixelText(c,letter,0,i*5.5,1,'#2938b0');c.restore()}
-function drawRetroGauge(){const canvas=$('retroGauge'),c=canvas.getContext('2d');c.imageSmoothingEnabled=false;const modern=renderer.mode==='modern',ink=modern?'#d7edf2':'#070907',accent=modern?'#91f5de':'#ece95a';c.fillStyle=modern?'#233748':'#898c86';c.fillRect(0,0,320,72);const score=String(game.score);pixelText(c,score,160-score.length*5,4,2,accent);pixelText(c,String(game.lives),12,59,2,accent);c.strokeStyle=ink;c.lineWidth=3;c.strokeRect(105,24,110,26);pixelText(c,'E',112,34,2,ink);pixelText(c,'1',145,28,1.5,ink);pixelText(c,'2',157,36,1.5,ink);pixelText(c,'F',195,34,2,ink);c.fillStyle=ink;for(const x of [114,159,204])c.fillRect(x,25,3,5);c.lineWidth=2;c.beginPath();c.moveTo(148,44);c.lineTo(165,30);c.stroke();const x=114+90*game.fuel/100;c.fillStyle=game.fuel<25?'#ff675d':accent;c.fillRect(Math.round(x)-1,30,3,18);canvas.setAttribute('aria-valuenow',Math.ceil(game.fuel))}
+function drawRetroGauge(){const canvas=$('retroGauge'),c=canvas.getContext('2d');c.imageSmoothingEnabled=false;const modern=renderer.mode==='modern',ink=modern?'#d7edf2':'#070907',accent=modern?'#91f5de':'#ece95a';c.fillStyle=modern?'#233748':'#898c86';c.fillRect(0,0,320,72);const score=String(game.score);pixelText(c,score,160-score.length*5,4,2,accent);pixelText(c,String(game.lives),12,59,2,accent);c.strokeStyle=ink;c.lineWidth=3;c.strokeRect(105,24,110,26);pixelText(c,'E',112,34,2,ink);pixelText(c,'1',145,28,1.5,ink);pixelText(c,'2',157,36,1.5,ink);pixelText(c,'F',195,34,2,ink);c.fillStyle=ink;for(const x of [114,159,204])c.fillRect(x,25,3,5);c.lineWidth=2;c.beginPath();c.moveTo(148,44);c.lineTo(165,30);c.stroke();const x=114+90*game.fuel/100;c.fillStyle=game.fuel<25?'#ff675d':accent;c.fillRect(Math.round(x)-1,30,3,18);canvas.setAttribute('aria-valuenow',Math.ceil(game.fuel));const mobile=$('mobileRetroGauge'),m=mobile.getContext('2d'),width=Math.max(1,Math.round(mobile.getBoundingClientRect().width));
+// Draw at the actual display width. Only the gauge rail length grows;
+// letter shapes and the needle retain equal horizontal/vertical scale.
+mobile.width=width*2;mobile.height=60;m.setTransform(2,0,0,2,0,0);m.imageSmoothingEnabled=false;m.fillStyle=modern?'#233748':'#898c86';m.fillRect(0,0,width,30);
+m.strokeStyle=ink;m.lineWidth=2;m.strokeRect(2,2,width-4,26);pixelText(m,'E',10,13,2,ink);pixelText(m,'F',width-22,13,2,ink);pixelText(m,'1',width/2-8,7,1.5,ink);pixelText(m,'2',width/2+4,15,1.5,ink);
+m.fillStyle=ink;for(const tick of [12,width/2,width-14])m.fillRect(tick,3,3,5);m.lineWidth=2;m.beginPath();m.moveTo(width/2-11,23);m.lineTo(width/2+6,9);m.stroke();
+m.fillStyle=game.fuel<25?'#ff675d':accent;m.fillRect(Math.round(12+(width-26)*game.fuel/100)-1,8,3,18);mobile.setAttribute('aria-valuenow',Math.ceil(game.fuel))}
 
 class AircraftBank{
  constructor(){this.game=null;this.player=null;this.time=0;this.x=0;this.value=0}
@@ -450,13 +462,95 @@ class ModernRenderer{
   if(g.flash>0){c.fillStyle='#ffe5b4';c.globalAlpha=g.flash*.8;c.fillRect(0,0,W,H);c.globalAlpha=1}
  }
 }
+// Perspective is presentation only. The camera reads the existing plane,
+// terrain and objects; it never moves them or requests more map sections.
+class CockpitRenderer{
+ constructor(canvas){this.ctx=canvas.getContext('2d',{alpha:false})}
+ view(g){return {world:g.camera+H-g.player.y,x:g.player.x,horizon:82+(g.player.y-354)*.04,altitude:44+(354-g.player.y)*.03,near:32,focal:176,far:g.player.y}}
+ project(v,x,depth,z=0){const scale=v.focal/Math.max(12,depth+v.near);return{x:Math.round(W/2+(x-v.x)*scale),y:Math.round(v.horizon+(v.altitude-z)*scale),scale}}
+ polygon(c,points,color){c.fillStyle=color;c.beginPath();points.forEach((p,i)=>i?c.lineTo(Math.round(p[0]),Math.round(p[1])):c.moveTo(Math.round(p[0]),Math.round(p[1])));c.closePath();c.fill()}
+ footprint(c,v,x,d,w,h,color){const points=[[x-w/2,d+h/2],[x+w/2,d+h/2],[x+w/2,d-h/2],[x-w/2,d-h/2]].map(([px,pd])=>{const p=this.project(v,px,pd);return[p.x,p.y]});this.polygon(c,points,color);return points}
+ terrain(g,v){const c=this.ctx;
+  c.fillStyle='#82d4cc';c.fillRect(0,0,W,H);c.fillStyle='#aadfc0';c.fillRect(0,52,W,31);
+  // Hard-edged sky, clouds and a stepped tree line, with an Atari-sized palette.
+  for(const [x,y,w] of [[28,25,44],[216,16,55],[131,43,27]]){c.fillStyle='#dce9cc';c.fillRect(x,y,w,5);c.fillRect(x+6,y-4,w-16,4)}
+  c.fillStyle='#355b36';for(let x=0;x<W;x+=8){const h=4+(Math.floor(visualHash(x)*4))*3;c.fillRect(x,Math.floor(v.horizon)-h,8,h+3)}
+  for(let y=Math.floor(v.horizon)+1;y<H;y+=2){
+   const scale=(y-v.horizon)/v.altitude,depth=clamp(v.altitude*v.focal/(y-v.horizon)-v.near,-12,v.far);
+   const t=g.river.terrain(v.world+depth),left=Math.round(W/2+(t.left-v.x)*scale),right=Math.round(W/2+(t.right-v.x)*scale);
+   c.fillStyle=t.stage%2?'#83a543':'#719a42';c.fillRect(0,y,W,2);
+   c.fillStyle=depth>175?'#3546a9':'#303abd';c.fillRect(left,y,right-left,2);
+   c.fillStyle='#9db85b';c.fillRect(left-2,y,2,2);c.fillRect(right,y,2,2);
+   if(t.islandRight>t.islandLeft){const a=Math.round(W/2+(t.islandLeft-v.x)*scale),b=Math.round(W/2+(t.islandRight-v.x)*scale);c.fillStyle='#719a42';c.fillRect(a,y,b-a,2);c.fillStyle='#9db85b';c.fillRect(a,y,2,2);c.fillRect(b-2,y,2,2)}
+  }
+  // Ripples are locked to world distance, so their motion is the real scroll.
+  for(let n=Math.floor(v.world/32);n<=(v.world+v.far)/32;n++)for(let j=0;j<3;j++){
+   const depth=n*32-v.world,x=66+((n*53+j*71)%185);if(depth<2)continue;
+   const t=g.river.terrain(n*32);if(x<=t.left+3||x>=t.right-3||(t.islandRight>t.islandLeft&&x>=t.islandLeft-3&&x<=t.islandRight+3))continue;
+   const p=this.project(v,x,depth);c.fillStyle='#6873ce';c.fillRect(p.x,p.y,Math.max(2,Math.round(p.scale*4)),1);
+  }
+ }
+ object(g,v,o){const c=this.ctx,d=o.world-v.world,p=this.project(v,o.x,d),s=p.scale;
+  if(o.type==='bridge'){
+   const t=g.river.terrain(o.world),middle=(t.left+t.right)/2;
+   this.footprint(c,v,W/2,d,W,24,'#888d84');
+   if(o.dead){this.footprint(c,v,middle,d,t.right-t.left,24,'#303abd');for(const x of [t.left,t.right]){const q=this.project(v,x,d);c.fillStyle='#c2c8a0';c.fillRect(q.x-2,q.y-3,4,4)}}
+   else{this.footprint(c,v,middle,d,t.right-t.left,24,'#b8774c');for(const offset of [-11,11]){const a=this.project(v,t.left,d+offset),b=this.project(v,t.right,d+offset);c.fillStyle='#efd1a0';c.fillRect(a.x,a.y-3,b.x-a.x,3);c.fillStyle='#5c473a';for(let x=a.x+4;x<b.x;x+=Math.max(5,Math.round(9*s)))c.fillRect(x,a.y-6,2,6)}}
+   return;
+  }
+  if(o.dead)return;
+  if(o.type==='fuel'){
+   this.footprint(c,v,o.x,d,14,46,'#d7d9b3');
+   for(const z of [-17,5])this.footprint(c,v,o.x,d+z,14,10,'#d9544b');
+   const nose=this.project(v,o.x,d-18),w=Math.max(9,Math.round(14*nose.scale)),hh=Math.max(7,Math.round(7*s));
+   c.fillStyle='#d9544b';c.fillRect(nose.x-w/2,nose.y-hh,w,hh);const unit=Math.max(1,Math.floor(w/19));pixelText(c,'FUEL',Math.round(nose.x-7.5*unit),Math.round(nose.y-hh+(hh-5*unit)/2),unit,'#182c85');
+  }else if(o.type==='ship'){
+   this.footprint(c,v,o.x,d,32,16,'#183d31');const q=this.project(v,o.x,d,6),w=Math.max(6,Math.round(25*s)),h=Math.max(3,Math.round(5*s));c.fillStyle='#dca36d';c.fillRect(q.x-w/2,q.y,w,h);c.fillStyle='#597331';c.fillRect(q.x-w*.25,q.y-h,Math.max(4,w*.45),h);c.fillStyle='#ece8b5';c.fillRect(q.x-w*.2,q.y-h,Math.max(3,w*.23),Math.max(1,h*.4));
+  }else if(o.type==='heli'){
+   const q=this.project(v,o.x,d,12),k=Math.max(.5,s);
+   c.fillStyle='#243e24';c.fillRect(p.x-5*k,p.y,10*k,2);c.fillStyle='#b6cd73';c.fillRect(q.x-5*k,q.y-4*k,10*k,7*k);c.fillRect(q.x-7*k,q.y-k,14*k,3*k);c.fillStyle='#354e82';c.fillRect(q.x-3*k,q.y-3*k,6*k,2*k);
+   c.fillStyle='#f1d78a';const rw=(Math.floor(g.time*12)%2?12:19)*k;c.fillRect(q.x-rw/2,q.y-6*k,rw,Math.max(1,k));c.fillStyle='#243e24';c.fillRect(q.x-7*k,q.y+4*k,14*k,Math.max(1,k));
+  }else if(o.type==='plane'){
+   const q=this.project(v,o.x,d,14),k=Math.max(.5,s);this.polygon(c,[[q.x-9*k,q.y],[q.x-3*k,q.y-2*k],[q.x-2*k,q.y-6*k],[q.x+2*k,q.y-6*k],[q.x+3*k,q.y-2*k],[q.x+9*k,q.y],[q.x+9*k,q.y+2*k],[q.x+2*k,q.y+k],[q.x,q.y+5*k],[q.x-2*k,q.y+k],[q.x-9*k,q.y+2*k]],'#e8d65f');c.fillStyle='#934c41';c.fillRect(q.x-k,q.y-3*k,2*k,3*k);
+  }else if(o.type==='house'){
+   const q=this.project(v,o.x,d,10),w=24*s,h=10*s;c.fillStyle='#dbddb7';c.fillRect(q.x-w/2,q.y,w,h);this.polygon(c,[[q.x-w*.6,q.y],[q.x,q.y-6*s],[q.x+w*.6,q.y]],'#353d2c');c.fillStyle='#526d35';c.fillRect(q.x-w*.32,q.y+3*s,w*.18,3*s);c.fillRect(q.x+w*.14,q.y+3*s,w*.18,3*s);
+  }
+ }
+ cabin(g,bank){const c=this.ctx;
+  this.polygon(c,[[0,0],[28,0],[40,8],[18,8],[38,354],[28,362],[8,18],[0,18]],'#273934');this.polygon(c,[[320,0],[292,0],[280,8],[302,8],[282,354],[292,362],[312,18],[320,18]],'#273934');
+  c.fillStyle='#70816a';c.fillRect(0,0,W,5);c.fillStyle='#18251f';c.fillRect(0,5,W,3);
+  // Sight and nose are fixed in the cabin; the projected world moves around them.
+  c.fillStyle='#eff0b0';for(const [x,y,w,h] of [[147,176,8,1],[165,176,8,1],[160,163,1,8],[160,182,1,7]])c.fillRect(x,y,w,h);
+  this.polygon(c,[[123,359],[139,335],[181,335],[197,359]],'#899484');c.fillStyle='#c3c7a8';c.fillRect(141,335,38,3);c.fillStyle='#536649';c.fillRect(154,339,12,17);
+  this.polygon(c,[[0,370],[57,350],[111,357],[209,357],[263,350],[320,370],[320,416],[0,416]],'#15251f');this.polygon(c,[[0,378],[58,360],[110,366],[210,366],[262,360],[320,378],[320,416],[0,416]],'#475b48');c.fillStyle='#a2ad82';c.fillRect(70,365,180,3);
+  c.fillStyle='#111d1a';c.fillRect(17,380,94,27);c.fillRect(124,377,72,31);c.fillRect(209,380,94,27);
+  pixelText(c,'FUEL',22,383,1,'#d9df9e');c.fillStyle='#788369';c.fillRect(22,394,82,7);c.fillStyle=g.fuel<25?'#df694a':'#dfdf72';c.fillRect(22,394,Math.round(82*g.fuel/100),7);
+  c.strokeStyle='#8cb89e';c.lineWidth=1;c.strokeRect(135,383,50,17);c.fillStyle='#84ceb4';c.fillRect(138,390,44,2);c.fillStyle='#dfdf72';const bx=Math.round(160+bank*17);c.fillRect(bx-7,389,14,2);c.fillRect(bx-1,386,2,8);
+  pixelText(c,Math.round(g.speed),222,385,2,'#d9df9e');c.fillStyle='#91a87c';c.fillRect(221,400,61,2);
+  if(g.refueling){c.fillStyle='#b3d987';c.fillRect(114,391,4,4)}
+ }
+ draw(g,bank=0){const c=this.ctx,v=this.view(g);c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over';c.imageSmoothingEnabled=false;c.fillStyle='#15251f';c.fillRect(0,0,W,H);
+  c.save();c.translate(W/2,H*.45);c.rotate(-bank*.045);c.translate(-W/2,-H*.45);this.terrain(g,v);
+  const objects=g.objects.filter(o=>o.world-v.world>=-14&&o.world-v.world<=v.far).slice().sort((a,b)=>b.world-a.world);
+  for(const o of objects)this.object(g,v,o);
+  if(g.bullet){const d=g.player.y-g.bullet.y;if(d>=-8&&d<=v.far){const p=this.project(v,g.bullet.x,d,6);c.fillStyle='#f1ec85';c.fillRect(p.x-1,p.y-6,2,8);c.fillStyle='#fff5cb';c.fillRect(p.x,p.y-8,1,3)}}
+  for(const particle of g.particles){const d=g.player.y-particle.y;if(d< -10||d>v.far)continue;const p=this.project(v,particle.x,d,5),size=Math.max(1,Math.min(6,Math.round(particle.life*4*p.scale)));c.fillStyle=particle.color;c.fillRect(p.x,p.y,size,size)}
+  for(const t of g.texts){const p=this.project(v,t.x,g.player.y-t.y,12);if(p.y<95||p.y>355)continue;c.fillStyle='#f3e5a2';c.font='bold 8px monospace';c.textAlign='center';c.fillText(t.text,p.x,p.y)}
+  c.restore();this.cabin(g,bank);
+  if(g.bannerTime>0&&g.mode==='playing'){c.fillStyle='#15251f';c.fillRect(62,20,196,18);c.fillStyle='#efe6a0';c.font='bold 8px monospace';c.textAlign='center';c.fillText(g.banner,160,32)}
+  if(g.mode==='dying'){c.fillStyle='#18241fed';c.fillRect(40,185,240,58);c.fillStyle='#efdf91';c.font='bold 11px monospace';c.textAlign='center';c.fillText('SAMOLOT UTRACONY',160,205);c.font='8px monospace';c.fillText(g.reason,160,224)}
+  if(g.flash>0){c.fillStyle='#f1b36c';c.globalAlpha=g.flash*.7;c.fillRect(0,0,W,H);c.globalAlpha=1}
+ }
+}
+
 class GraphicsRenderer{
- constructor(canvas){this.canvas=canvas;this.classic=new Renderer(canvas);this.modern=new ModernRenderer(canvas);this.bank=new AircraftBank();this.mode='classic';this.setMode('classic')}
- setMode(mode){this.mode=mode==='modern'?'modern':'classic';const s=this.mode==='modern'?this.modern.resolution:1;this.canvas.width=W*s;this.canvas.height=H*s;const c=this.classic.ctx;c.setTransform(s,0,0,s,0,0);c.imageSmoothingEnabled=this.mode==='modern'}
- draw(g){(this.mode==='modern'?this.modern:this.classic).draw(g,this.bank.sample(g))}
+ constructor(canvas){this.canvas=canvas;this.classic=new Renderer(canvas);this.modern=new ModernRenderer(canvas);this.cockpit=new CockpitRenderer(canvas);this.bank=new AircraftBank();this.mode='classic';this.setMode('classic')}
+ setMode(mode){this.mode=['classic','modern','cockpit'].includes(mode)?mode:'classic';const s=this.mode==='modern'?this.modern.resolution:1;this.canvas.width=W*s;this.canvas.height=H*s;const c=this.classic.ctx;c.setTransform(s,0,0,s,0,0);c.imageSmoothingEnabled=this.mode==='modern'}
+ draw(g){(this.mode==='cockpit'?this.cockpit:this.mode==='modern'?this.modern:this.classic).draw(g,this.bank.sample(g))}
 }
 
 const $=id=>document.getElementById(id),sound=new Sound(),game=new Game(k=>sound.play(k)),renderer=new GraphicsRenderer($('game'));
+const graphicsStorageKey=document.body.dataset.defaultGraphics==='cockpit'?'river-raid-cockpit-graphics-v1':'river-raid-graphics-v1';
 const keyboard=new Set(),touches=new Map(),drag={pointer:null,lastX:0,lastY:0,moves:[]};let overlayMode='',lastStatus='',lastUI=0;
 function input(){const keys=new Set([...keyboard,...touches.values()]),value={left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),up:keys.has('ArrowUp')||keys.has('KeyW'),down:keys.has('ArrowDown')||keys.has('KeyS'),fire:keys.has('Space')};if(drag.pointer!==null||drag.moves.length)value.drag=drag.moves.slice();return value}
 function consumeInput(){const value=input();drag.moves=[];return value}
@@ -490,9 +584,9 @@ window.addEventListener('blur',()=>{clearInput();if(game.mode==='playing'){game.
 for(const cv of document.querySelectorAll('[data-sprite]')){const ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;drawSprite(ctx,cv.dataset.sprite,20,16,cv.dataset.sprite==='ship'?3:2,cv.dataset.sprite==='fuel'?1:2)}
 
 function setGraphics(mode,persist=true){
- renderer.setMode(mode);const modern=renderer.mode==='modern';document.body.classList.toggle('modern',modern);
- $('graphicsClassic').setAttribute('aria-pressed',String(!modern));$('graphicsModern').setAttribute('aria-pressed',String(modern));
- if(persist)try{localStorage.setItem('river-raid-graphics-v1',renderer.mode)}catch{}
+ renderer.setMode(mode);const modern=renderer.mode==='modern';document.body.classList.toggle('modern',modern);document.body.classList.toggle('cockpit',renderer.mode==='cockpit');
+ for(const [id,value] of [['graphicsClassic','classic'],['graphicsModern','modern'],['graphicsCockpit','cockpit']])$(id).setAttribute('aria-pressed',String(renderer.mode===value));
+ if(persist)try{localStorage.setItem(graphicsStorageKey,renderer.mode)}catch{}
  for(const cv of document.querySelectorAll('[data-sprite]')){
   const scale=modern?3:1;cv.width=40*scale;cv.height=32*scale;const c=cv.getContext('2d');c.setTransform(scale,0,0,scale,0,0);c.imageSmoothingEnabled=modern;
   if(modern){const type=cv.dataset.sprite;if(type==='bridge'){c.translate(20,16);c.fillStyle='#3b657c';c.fillRect(-17,-7,34,14);c.strokeStyle='#a9ebf4';c.lineWidth=.8;c.strokeRect(-17,-7,34,14);c.setLineDash([3,3]);c.beginPath();c.moveTo(-16,0);c.lineTo(16,0);c.stroke();c.setLineDash([])}else{c.save();if(type==='fuel'){c.translate(0,7);c.scale(1,.6)}modernObject(c,{type,x:20,dir:1},16,0);c.restore()}}
@@ -501,8 +595,8 @@ function setGraphics(mode,persist=true){
  renderer.draw(game);
  settingsSync();
 }
-for(const [id,mode] of [['graphicsClassic','classic'],['graphicsModern','modern']])$(id).addEventListener('click',e=>{setGraphics(mode);if(e.detail)$(id).blur()});
-let savedGraphics='classic';try{savedGraphics=localStorage.getItem('river-raid-graphics-v1')||'classic'}catch{}setGraphics(savedGraphics,false);
+for(const [id,mode] of [['graphicsClassic','classic'],['graphicsModern','modern'],['graphicsCockpit','cockpit']])$(id).addEventListener('click',e=>{setGraphics(mode);if(e.detail)$(id).blur()});
+let savedGraphics=document.body.dataset.defaultGraphics||'classic';try{savedGraphics=localStorage.getItem(graphicsStorageKey)||savedGraphics}catch{}setGraphics(savedGraphics,false);
 
 // Relative direct manipulation: preserve the offset to the plane on contact,
 // then match each finger displacement in CSS pixels. No joystick/dead zone.
@@ -538,9 +632,9 @@ for(const type of ['pointerup','pointercancel','lostpointercapture'])$('fireZone
 const phoneQuery=matchMedia('(max-width:900px), (max-height:420px), (pointer:coarse)');
 let settingsResume=false;
 function settingsSync(){
- $('menuClassic').setAttribute('aria-pressed',String(renderer.mode==='classic'));$('menuModern').setAttribute('aria-pressed',String(renderer.mode==='modern'));
+ for(const [id,value] of [['menuClassic','classic'],['menuModern','modern'],['menuCockpit','cockpit']])$(id).setAttribute('aria-pressed',String(renderer.mode===value));
  $('menuSound').textContent='Dźwięk: '+(sound.enabled?'włączony':'wyłączony');$('menuSound').setAttribute('aria-pressed',String(sound.enabled));
- $('mobileMode').textContent=renderer.mode==='modern'?'NOWOCZESNA HD':'KLASYCZNA';
+ $('mobileMode').textContent=renderer.mode==='cockpit'?'KOKPIT · 8 BIT':renderer.mode==='modern'?'NOWOCZESNA HD':'KLASYCZNA';
 }
 function fitPhoneViewport(){
  const well=document.querySelector('.screen-well'),r=well.getBoundingClientRect();
@@ -571,6 +665,7 @@ for(const id of ['closeSettings','settingsDone'])$(id).addEventListener('click',
 $('mobileSettings').addEventListener('close',()=>{clearInput();if(settingsResume&&game.mode==='paused')pause();settingsResume=false;settingsSync()});
 $('menuClassic').addEventListener('click',()=>{setGraphics('classic');settingsSync()});
 $('menuModern').addEventListener('click',()=>{setGraphics('modern');settingsSync()});
+$('menuCockpit').addEventListener('click',()=>{setGraphics('cockpit');settingsSync()});
 $('menuSound').addEventListener('click',()=>{$('sound').click();settingsSync()});
 $('menuRestart').addEventListener('click',()=>{settingsResume=false;$('mobileSettings').close();begin()});
 const fullscreenAvailable=!!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen);

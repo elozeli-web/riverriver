@@ -224,7 +224,9 @@ class Game{
    this.player.x=clamp(this.player.x+this.player.vx*dt,8,W-8);
    this.player.y=clamp(this.player.y+dy*58*dt,H*.56,H*.89);
   }
-  const target=dy<0?MAX_SPEED:dy>0?MIN_SPEED:CRUISE;
+  // Direct touch movement and held throttle are independent controls.
+  const throttle=drag&&Number.isFinite(input.throttle)?clamp(input.throttle,-1,1):null;
+  const target=throttle===null?(dy<0?MAX_SPEED:dy>0?MIN_SPEED:CRUISE):CRUISE+throttle*(throttle>0?MAX_SPEED-CRUISE:CRUISE-MIN_SPEED);
   this.speed+=clamp(target-this.speed,-112.5*dt,112.5*dt);
   this.camera+=this.speed*dt;this.invulnerable=Math.max(0,this.invulnerable-dt);
   this.loadObjects(Math.floor((this.camera+H)/SECTION)+1);
@@ -785,8 +787,8 @@ class GraphicsRenderer{
 
 const $=id=>document.getElementById(id),sound=new Sound(),game=new Game(k=>sound.play(k)),renderer=new GraphicsRenderer($('game'));
 const graphicsStorageKey=document.body.dataset.defaultGraphics==='cockpit'?'river-raid-cockpit-graphics-v1':'river-raid-graphics-v1';
-const keyboard=new Set(),touches=new Map(),drag={pointer:null,lastX:0,lastY:0,moves:[]};let overlayMode='',lastStatus='',lastUI=0;
-function input(){const keys=new Set([...keyboard,...touches.values()]),value={left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),up:keys.has('ArrowUp')||keys.has('KeyW'),down:keys.has('ArrowDown')||keys.has('KeyS'),fire:keys.has('Space')};if(drag.pointer!==null||drag.moves.length)value.drag=drag.moves.slice();return value}
+const keyboard=new Set(),touches=new Map(),drag={pointer:null,startY:0,lastX:0,lastY:0,moves:[]};let overlayMode='',lastStatus='',lastUI=0;
+function input(){const keys=new Set([...keyboard,...touches.values()]),value={left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),up:keys.has('ArrowUp')||keys.has('KeyW'),down:keys.has('ArrowDown')||keys.has('KeyS'),fire:keys.has('Space')};if(drag.pointer!==null||drag.moves.length){value.drag=drag.moves.slice();const offset=drag.pointer===null?0:drag.startY-drag.lastY;value.throttle=Math.sign(offset)*clamp((Math.abs(offset)-3)/29,0,1)}return value}
 function consumeInput(){const value=input();drag.moves=[];return value}
 function clearInput(){keyboard.clear();const ids=[...touches.keys()];touches.clear();for(const id of ids)if($('fireZone').hasPointerCapture(id))$('fireZone').releasePointerCapture(id);resetDrag(true)}
 function begin(){clearInput();sound.unlock();game.start();sync(true);$('start').blur()}
@@ -839,7 +841,7 @@ let savedGraphics=document.body.dataset.defaultGraphics||'classic';try{savedGrap
 // Relative direct manipulation: preserve the offset to the plane on contact,
 // then match each finger displacement in CSS pixels. No joystick/dead zone.
 function resetDrag(discard=false){
- const pointer=drag.pointer;drag.pointer=null;if(discard)drag.moves=[];
+ const pointer=drag.pointer;drag.pointer=null;drag.startY=0;if(discard)drag.moves=[];
  if(pointer!==null&&$('steerZone').hasPointerCapture(pointer))$('steerZone').releasePointerCapture(pointer);
 }
 function updateDrag(e){
@@ -853,7 +855,7 @@ function updateDrag(e){
 }
 $('steerZone').addEventListener('pointerdown',e=>{
  if(e.button!==0||drag.pointer!==null||game.mode!=='playing')return;
- e.preventDefault();sound.unlock();drag.pointer=e.pointerId;drag.lastX=e.clientX;drag.lastY=e.clientY;
+ e.preventDefault();sound.unlock();drag.pointer=e.pointerId;drag.startY=e.clientY;drag.lastX=e.clientX;drag.lastY=e.clientY;
  $('steerZone').setPointerCapture(e.pointerId);
 });
 $('steerZone').addEventListener('pointermove',e=>{if(e.pointerId!==drag.pointer)return;e.preventDefault();updateDrag(e)});

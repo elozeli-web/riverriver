@@ -77,7 +77,7 @@ body.desktop-ui{position:fixed;inset:0;width:100%;height:var(--app-height,100dvh
 .phone-ui .machine{grid-template-areas:'bar bar' 'score fuel' 'screen screen' 'dock dock';grid-template-rows:44px 48px minmax(0,1fr) clamp(112px,18dvh,152px)}
 .phone-ui .gesture-dock{grid-area:dock;position:relative;display:block;min-height:0;border:1px solid #566744;border-radius:14px;background:linear-gradient(180deg,#1a291c,#101a13);touch-action:none;overflow:hidden}
 .phone-ui.modern .gesture-dock{border-color:#35576b;background:linear-gradient(180deg,#142c3d,#0c1b2b)}
-.phone-ui .gesture-dock .touch-zones{display:flex;position:absolute;inset:0}.gesture-dock .touch-zone{position:relative}.gesture-dock #steerZone{border-right:1px solid #ffffff12}.gesture-dock .touch-zone::after{position:absolute;left:0;right:0;bottom:14px;text-align:center;font:10px Arial,sans-serif;letter-spacing:1px;color:#a1b4a2;pointer-events:none;content:'PRZESUWAJ · LOT'}.gesture-dock #fireZone::after{content:'PRZYTRZYMAJ · OGIEŃ'}.modern .gesture-dock .touch-zone::after{color:#90b7ca}
+.phone-ui .gesture-dock .touch-zones{display:flex;position:absolute;inset:0}.gesture-dock .touch-zone{position:relative}.gesture-dock #steerZone{border-right:1px solid #ffffff12}.gesture-dock .touch-zone::after{position:absolute;left:0;right:0;bottom:14px;text-align:center;font:10px Arial,sans-serif;letter-spacing:1px;color:#a1b4a2;pointer-events:none;content:'KIERUNEK LOTU'}.gesture-dock #fireZone::after{content:'OGIEŃ'}.modern .gesture-dock .touch-zone::after{color:#90b7ca}
 @media(orientation:landscape){.phone-ui .machine{grid-template-areas:'bar score fuel' 'screen screen screen' 'dock dock dock';grid-template-rows:48px minmax(0,1fr) 88px}.gesture-dock .touch-zone::after{bottom:10px}}
 </style>
 <style>

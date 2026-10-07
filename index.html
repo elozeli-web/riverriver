@@ -84,7 +84,7 @@ body.desktop-ui{position:fixed;inset:0;width:100%;height:var(--app-height,100dvh
 #mobileRetroGauge{display:none}.phone-ui #mobileRetroGauge{display:block;width:100%;height:30px;image-rendering:pixelated;background:#898c86}.phone-ui.modern #mobileRetroGauge{background:#233748}.phone-ui .instrument-panel .fuel-label,.phone-ui .instrument-panel .fuel-track{display:none}.phone-ui .instrument-panel{padding-top:0}.phone-ui .flight-data{margin-top:4px}
 </style>
 <style>
-.cockpit{--bg:#101c18;--accent:#ece59a;--ink:#e4e5c4;--line:#455c43}.cockpit .viewport canvas{image-rendering:pixelated}.cockpit .scanlines{opacity:.045}.cockpit .graphics-switch button[aria-pressed=true]{background:#354c35;border-color:#b2bc7a;color:#f7eeae}.cockpit .graphics-switch b{background:#e5de8e}.desktop-ui .toolbar{margin-top:42px}.settings-choices{display:grid;grid-template-columns:1fr 1fr}.settings-choices #menuCockpit{grid-column:1/-1}.phone-ui:has(#mobileSettings[open]){touch-action:pan-y}.mobile-settings{touch-action:pan-y}
+.cockpit{--bg:#101c18;--accent:#ece59a;--ink:#e4e5c4;--line:#455c43}.cockpit .viewport canvas{image-rendering:pixelated}.cockpit .scanlines{display:none}.cockpit .graphics-switch button[aria-pressed=true]{background:#354c35;border-color:#b2bc7a;color:#f7eeae}.cockpit .graphics-switch b{background:#e5de8e}.desktop-ui .toolbar{margin-top:42px}.settings-choices{display:grid;grid-template-columns:1fr 1fr}.settings-choices #menuCockpit{grid-column:1/-1}.phone-ui:has(#mobileSettings[open]){touch-action:pan-y}.mobile-settings{touch-action:pan-y}
 
 /* Cockpit instruments belong to the aircraft, leaving one source of flight data. */
 .cockpit .scoreboard,.cockpit .instrument-panel,.cockpit .retro-panel{display:none!important}
@@ -534,7 +534,7 @@ class ModernRenderer{
 // Perspective is presentation only. The camera reads the existing plane,
 // terrain and objects; it never moves them or requests more map sections.
 class CockpitRenderer{
- constructor(canvas){this.ctx=canvas.getContext('2d',{alpha:false});this.scoreRolls=new WeakMap()}
+ constructor(canvas){this.ctx=canvas.getContext('2d',{alpha:false});this.scoreRolls=new WeakMap();this.scene=document.createElement('canvas');this.scene.width=W+32;this.scene.height=H+32;this.sceneCtx=this.scene.getContext('2d',{alpha:false})}
  // The eye is eight map units behind the player, rather than 32. At the
  // existing ship collision distance (8 + 11), its hull reaches the nose.
  view(g){return {world:g.camera+H-g.player.y,x:g.player.x,horizon:82+(g.player.y-354)*.04,altitude:48+(354-g.player.y)*.03,near:8,focal:144,far:g.player.y}}
@@ -550,16 +550,16 @@ class CockpitRenderer{
   this.face(v,[[a,f,z+height],[b,f,z+height],[b,r,z+height],[a,r,z+height]],colors[0]);
  }
  terrain(g,v){const c=this.ctx;
-  c.fillStyle='#86d3b6';c.fillRect(0,0,W,H);c.fillStyle='#aecb90';c.fillRect(0,52,W,31);
+  c.fillStyle='#86d3b6';c.fillRect(-16,-16,W+32,H+32);c.fillStyle='#aecb90';c.fillRect(-16,52,W+32,31);
   for(const [x,y,w] of [[28,25,44],[216,16,55],[131,43,27]]){c.fillStyle='#e4e4ba';c.fillRect(x,y,w,5);c.fillRect(x+6,y-4,w-16,4)}
   // Distant silhouettes are decorative; map sampling never exceeds the
   // range already visible in the overhead game.
   this.polygon(c,[[0,83],[0,58],[20,58],[20,45],[45,45],[45,60],[67,60],[67,72],[94,72],[94,83]],'#527c38');
   this.polygon(c,[[228,83],[228,72],[248,72],[248,57],[268,57],[268,41],[294,41],[294,52],[320,52],[320,83]],'#3f6631');
-  for(let y=Math.floor(v.horizon)+1;y<H;y+=2){
+  for(let y=Math.floor(v.horizon)+1;y<H+16;y+=2){
    const scale=(y-v.horizon)/v.altitude,depth=clamp(v.altitude*v.focal/(y-v.horizon)-v.near,-6,v.far);
    const t=g.river.terrain(v.world+depth),left=Math.round(W/2+(t.left-v.x)*scale),right=Math.round(W/2+(t.right-v.x)*scale);
-   c.fillStyle='#719a42';c.fillRect(0,y,W,2);
+   c.fillStyle='#719a42';c.fillRect(-16,y,W+32,2);
    c.fillStyle=depth>175?'#3546a9':'#303abd';c.fillRect(left,y,right-left,2);
    c.fillStyle='#add069';c.fillRect(left-2,y,2,2);c.fillRect(right,y,2,2);
    if(t.islandRight>t.islandLeft){const a=Math.round(W/2+(t.islandLeft-v.x)*scale),b=Math.round(W/2+(t.islandRight-v.x)*scale);c.fillStyle='#719a42';c.fillRect(a,y,b-a,2);c.fillStyle='#add069';c.fillRect(a,y,2,2);c.fillRect(b-2,y,2,2)}
@@ -766,13 +766,19 @@ class CockpitRenderer{
   this.flightInstruments(g,bank);
   if(g.refueling){c.fillStyle='#b3d987';c.fillRect(119,380,4,3)}
  }
- draw(g,bank=0){const c=this.ctx,v=this.view(g);c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over';c.imageSmoothingEnabled=false;c.fillStyle='#15251f';c.fillRect(0,0,W,H);
-  c.save();c.translate(W/2,H*.45);c.rotate(-bank*.045);c.translate(-W/2,-H*.45);this.terrain(g,v);
+ drawWorld(g,v){const c=this.ctx;this.terrain(g,v);
   const objects=g.objects.filter(o=>o.world-v.world>=-14&&o.world-v.world<=v.far).slice().sort((a,b)=>b.world-a.world);for(const o of objects)this.object(g,v,o);
   if(g.bullet){const d=g.player.y-g.bullet.y;if(d>=-8&&d<=v.far){const p=this.project(v,g.bullet.x,d,6);c.fillStyle='#f1ec85';c.fillRect(p.x-1,p.y-6,2,8);c.fillStyle='#fff5cb';c.fillRect(p.x,p.y-8,1,3)}}
   for(const particle of g.particles){const d=g.player.y-particle.y;if(d< -10||d>v.far)continue;const p=this.project(v,particle.x,d,5),size=Math.max(1,Math.min(6,Math.round(particle.life*4*p.scale)));c.fillStyle=particle.color;c.fillRect(p.x,p.y,size,size)}
   for(const t of g.texts){const p=this.project(v,t.x,g.player.y-t.y,12);if(p.y<95||p.y>355)continue;c.fillStyle='#f3e5a2';c.font='bold 8px monospace';c.textAlign='center';c.fillText(t.text,p.x,p.y)}
-  c.restore();this.cabin(g,bank);
+ }
+ draw(g,bank=0){const c=this.ctx,v=this.view(g),scene=this.sceneCtx;
+  // Compose the scene on an integer grid before banking it. Rotating each
+  // terrain strip separately lets antialiasing reveal gaps between strips.
+  scene.setTransform(1,0,0,1,16,16);scene.globalAlpha=1;scene.globalCompositeOperation='source-over';scene.imageSmoothingEnabled=false;
+  this.ctx=scene;try{this.drawWorld(g,v)}finally{this.ctx=c}
+  c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over';c.imageSmoothingEnabled=false;
+  c.save();c.translate(W/2,H*.45);c.rotate(-bank*.045);c.translate(-W/2,-H*.45);c.drawImage(this.scene,-16,-16);c.restore();this.cabin(g,bank);
   if(g.bannerTime>0&&g.mode==='playing'){c.fillStyle='#15251f';c.fillRect(62,20,196,18);c.fillStyle='#efe6a0';c.font='bold 8px monospace';c.textAlign='center';c.fillText(g.banner,160,32)}
   if(g.mode==='dying'){c.fillStyle='#18241fed';c.fillRect(40,185,240,58);c.fillStyle='#efdf91';c.font='bold 11px monospace';c.textAlign='center';c.fillText('SAMOLOT UTRACONY',160,205);c.font='8px monospace';c.fillText(g.reason,160,224)}
   if(g.flash>0){c.fillStyle='#f1b36c';c.globalAlpha=g.flash*.7;c.fillRect(0,0,W,H);c.globalAlpha=1}

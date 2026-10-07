@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111916">
-<title>Zlot rzeczny/title>
+<title>River Raid — Kokpit 8 bit — lot nad rzeką</title>
 <style>
 :root{color-scheme:dark;--bg:#111916;--panel:#18221d;--line:#334138;--ink:#e7e9d8;--muted:#96a294;--accent:#eacf70;--green:#a3bd7c;--red:#ef806e;font-family:Arial,Helvetica,sans-serif}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);min-height:100svh}button{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:4px}button{touch-action:manipulation}button:disabled{opacity:.4;cursor:default}button:hover:not(:disabled){filter:brightness(1.15)}
@@ -97,7 +97,7 @@ body.desktop-ui{position:fixed;inset:0;width:100%;height:var(--app-height,100dvh
 <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true"></span>ARCADE ARCHIVE</div><div class="edition"><span class="online-dot"></span>1982 / WERSJA PRZEGLĄDARKOWA</div></header>
 <main>
 <section class="intro"><div><p class="eyebrow">MISJA 01 · NAD WROGIM TERYTORIUM</p><h1>RIVER<br><span>RAID</span></h1><p class="lead">Rzeka wyznacza trasę.<br>Ty decydujesz, jak daleko dolecisz.</p></div><div class="rule"><div class="caption">STEROWANIE</div><div class="keys"><span><kbd class="key">←</kbd> <kbd class="key">→</kbd></span><span>Skręt samolotu</span><span><kbd class="key">↑</kbd> <kbd class="key">↓</kbd></span><span>Pozycja i prędkość</span><kbd class="key">SPACJA</kbd><span>Strzał / przytrzymaj</span><kbd class="key">P / ESC</kbd><span>Pauza</span><kbd class="key">R</kbd><span>Nowa gra</span></div><p class="flight-note">Możesz też użyć WASD.<br>↑ przyspiesza · ↓ zwalnia</p><div class="side-footer">JEDEN PILOT. JEDNA RZEKA.<br>ŻADNEGO KOŃCA W ZASIĘGU WZROKU.</div></div></section>
-<section class="machine" aria-label="Gra Zlot rzeczny">
+<section class="machine" aria-label="Gra River Raid">
 <div id="mobileBar" class="mobile-bar"><div class="mobile-title">RIVER RAID<span id="mobileMode">KLASYCZNA</span></div><button class="app-icon" id="mobileFullscreen" type="button" aria-label="Pełny ekran"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button><button class="app-icon" id="mobilePause" type="button" aria-label="Pauza" disabled>Ⅱ</button><button class="app-icon" id="mobileMenu" type="button" aria-label="Ustawienia"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16M8 3v6m8 0v6m-6 0v6"/></svg></button></div>
 <div class="graphics-switch" role="group" aria-label="Tryb grafiki"><span>GRAFIKA</span><button type="button" id="graphicsClassic" aria-pressed="true">Klasyczna</button><button type="button" id="graphicsModern" aria-pressed="false">Nowoczesna <b>HD</b></button><button type="button" id="graphicsCockpit" aria-pressed="false">Kokpit <b>8 BIT</b></button></div>
 <div class="scoreboard"><div><div class="label">PUNKTY</div><div class="score" id="score">000000</div></div><div class="record"><div class="label">REKORD</div><div class="score" id="best">000000</div></div></div>
@@ -283,7 +283,7 @@ class Game{
  }
 }
 class Sound{
- constructor(){this.enabled=true;this.context=null;this.warningNodes=null;this.flightNodes=null;this.priorityUntil=0;this.refuelState=null}
+ constructor(){this.enabled=false;this.context=null;this.warningNodes=null;this.flightNodes=null;this.priorityUntil=0;this.refuelState=null}
  unlock(){try{this.context??=new (window.AudioContext||window.webkitAudioContext)();if(this.context.state==='suspended')this.context.resume()}catch{}}
  play(kind){if(kind==='fuel'||!this.enabled)return;this.unlock();const c=this.context;if(!c)return;const cfg={shot:[620,180,.055,.028],hit:[170,50,.13,.06],bridge:[100,23,.35,.09],crash:[145,19,.7,.09],preview:[490.625,490.625,8/60,.024],stage:[420,840,.24,.04],life:[620,1240,.3,.04]}[kind];if(!cfg)return;const o=c.createOscillator(),g=c.createGain(),now=c.currentTime;o.type='square';o.frequency.setValueAtTime(cfg[0],now);o.frequency.exponentialRampToValueAtTime(cfg[1],now+cfg[2]);g.gain.setValueAtTime(cfg[3],now);g.gain.exponentialRampToValueAtTime(.0001,now+cfg[2]);o.connect(g);g.connect(c.destination);o.start(now);o.stop(now+cfg[2]);if(kind!=='shot'&&kind!=='bridge')this.priorityUntil=now+cfg[2]}
  makeFlightNodes(c){

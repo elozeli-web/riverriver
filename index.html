@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111916">
-<title>River Raid — lot nad rzeką</title>
+<title>River Raid — Kokpit 8 bit — lot nad rzeką</title>
 <style>
 :root{color-scheme:dark;--bg:#111916;--panel:#18221d;--line:#334138;--ink:#e7e9d8;--muted:#96a294;--accent:#eacf70;--green:#a3bd7c;--red:#ef806e;font-family:Arial,Helvetica,sans-serif}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);min-height:100svh}button{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:4px}button{touch-action:manipulation}button:disabled{opacity:.4;cursor:default}button:hover:not(:disabled){filter:brightness(1.15)}
@@ -85,9 +85,15 @@ body.desktop-ui{position:fixed;inset:0;width:100%;height:var(--app-height,100dvh
 </style>
 <style>
 .cockpit{--bg:#101c18;--accent:#ece59a;--ink:#e4e5c4;--line:#455c43}.cockpit .viewport canvas{image-rendering:pixelated}.cockpit .scanlines{opacity:.045}.cockpit .graphics-switch button[aria-pressed=true]{background:#354c35;border-color:#b2bc7a;color:#f7eeae}.cockpit .graphics-switch b{background:#e5de8e}.desktop-ui .toolbar{margin-top:42px}.settings-choices{display:grid;grid-template-columns:1fr 1fr}.settings-choices #menuCockpit{grid-column:1/-1}.phone-ui:has(#mobileSettings[open]){touch-action:pan-y}.mobile-settings{touch-action:pan-y}
+
+/* Cockpit instruments belong to the aircraft, leaving one source of flight data. */
+.cockpit .scoreboard,.cockpit .instrument-panel,.cockpit .retro-panel{display:none!important}
+.desktop-ui.cockpit .machine{grid-template-areas:'brand screen graphics' '. screen graphics' '. screen toolbar' '. screen .';grid-template-rows:60px 100px 150px minmax(0,1fr);grid-template-columns:minmax(156px,1fr) minmax(0,calc(var(--app-height,100dvh) * .769231)) minmax(156px,1fr)}
+.phone-ui.cockpit .machine{grid-template-areas:'bar bar' 'screen screen' 'dock dock';grid-template-columns:1fr 1fr;grid-template-rows:44px minmax(0,1fr) clamp(112px,18dvh,152px)}
+@media(orientation:landscape){.phone-ui.cockpit .machine{grid-template-areas:'bar bar' 'screen screen' 'dock dock';grid-template-columns:1fr 1fr;grid-template-rows:48px minmax(0,1fr) 88px}}
 </style>
 </head>
-<body>
+<body data-default-graphics="cockpit">
 <header class="topbar"><div class="brand"><span class="brand-mark" aria-hidden="true"></span>ARCADE ARCHIVE</div><div class="edition"><span class="online-dot"></span>1982 / WERSJA PRZEGLĄDARKOWA</div></header>
 <main>
 <section class="intro"><div><p class="eyebrow">MISJA 01 · NAD WROGIM TERYTORIUM</p><h1>RIVER<br><span>RAID</span></h1><p class="lead">Rzeka wyznacza trasę.<br>Ty decydujesz, jak daleko dolecisz.</p></div><div class="rule"><div class="caption">STEROWANIE</div><div class="keys"><span><kbd class="key">←</kbd> <kbd class="key">→</kbd></span><span>Skręt samolotu</span><span><kbd class="key">↑</kbd> <kbd class="key">↓</kbd></span><span>Pozycja i prędkość</span><kbd class="key">SPACJA</kbd><span>Strzał / przytrzymaj</span><kbd class="key">P / ESC</kbd><span>Pauza</span><kbd class="key">R</kbd><span>Nowa gra</span></div><p class="flight-note">Możesz też użyć WASD.<br>↑ przyspiesza · ↓ zwalnia</p><div class="side-footer">JEDEN PILOT. JEDNA RZEKA.<br>ŻADNEGO KOŃCA W ZASIĘGU WZROKU.</div></div></section>
@@ -275,10 +281,35 @@ class Game{
  }
 }
 class Sound{
- constructor(){this.enabled=false;this.context=null}
+ constructor(){this.enabled=false;this.context=null;this.warningNodes=null;this.priorityUntil=0}
  unlock(){try{this.context??=new (window.AudioContext||window.webkitAudioContext)();if(this.context.state==='suspended')this.context.resume()}catch{}}
- play(kind){if(!this.enabled)return;this.unlock();const c=this.context;if(!c)return;const cfg={shot:[620,180,.055,.028],hit:[170,50,.13,.06],bridge:[100,23,.35,.09],crash:[145,19,.7,.09],fuel:[420,480,.065,.022],stage:[420,840,.24,.04],life:[620,1240,.3,.04]}[kind];if(!cfg)return;const o=c.createOscillator(),g=c.createGain(),now=c.currentTime;o.type=kind==='fuel'?'sine':'square';o.frequency.setValueAtTime(cfg[0],now);o.frequency.exponentialRampToValueAtTime(cfg[1],now+cfg[2]);g.gain.setValueAtTime(cfg[3],now);g.gain.exponentialRampToValueAtTime(.0001,now+cfg[2]);o.connect(g);g.connect(c.destination);o.start(now);o.stop(now+cfg[2])}
+ play(kind){if(!this.enabled)return;this.unlock();const c=this.context;if(!c)return;const cfg={shot:[620,180,.055,.028],hit:[170,50,.13,.06],bridge:[100,23,.35,.09],crash:[145,19,.7,.09],fuel:[420,480,.065,.022],stage:[420,840,.24,.04],life:[620,1240,.3,.04]}[kind];if(!cfg)return;const o=c.createOscillator(),g=c.createGain(),now=c.currentTime;o.type=kind==='fuel'?'sine':'square';o.frequency.setValueAtTime(cfg[0],now);o.frequency.exponentialRampToValueAtTime(cfg[1],now+cfg[2]);g.gain.setValueAtTime(cfg[3],now);g.gain.exponentialRampToValueAtTime(.0001,now+cfg[2]);o.connect(g);g.connect(c.destination);o.start(now);o.stop(now+cfg[2]);if(kind!=='shot'&&kind!=='bridge')this.priorityUntil=now+cfg[2]}
+ update(g){
+  const alert=fuelAlert.sample(g),active=this.enabled&&alert.audible;
+  if(active)this.unlock();const c=this.context;if(!c)return;
+  if(active&&!this.warningNodes){const oscillator=c.createOscillator(),gain=c.createGain();oscillator.type='square';gain.gain.value=0;oscillator.connect(gain);gain.connect(c.destination);oscillator.start();this.warningNodes={oscillator,gain}}
+  if(!this.warningNodes)return;
+  const {oscillator,gain}=this.warningNodes,now=c.currentTime;
+  if(alert.low)oscillator.frequency.setValueAtTime(alert.frequency,now);
+  gain.gain.cancelScheduledValues(now);gain.gain.setTargetAtTime((active&&now>=this.priorityUntil)?0.045:0,now,.003);
+ }
 }
+// RiverRaid.2020AUG.asm 1879–1912 / JTZ.asm 1695–1728:
+// fuelHi < $40, countdown $3F (after DEY: 62..0), audible at >= $1C.
+// fuelHi < $04 switches to continuous AUDC=$0C, AUDF=31-(fuel>>6).
+// Presentation state is kept outside Game, so gameplay remains unchanged.
+class FuelAlert{
+ constructor(){this.entries=new WeakMap()}
+ sample(g){
+  const units=Math.round(clamp(g.fuel,0,100)*65535/100),low=units<0x4000,critical=units<0x400;
+  if(!low){this.entries.delete(g);return {low:false,critical:false,lit:false,audible:false,frequency:0,count:0}}
+  let entry=this.entries.get(g);if(!entry||g.time<entry.last){entry={start:g.time,last:g.time};this.entries.set(g,entry)}entry.last=g.time;
+  const count=62-Math.floor(Math.max(0,g.time-entry.start)*60+1e-6)%63,lit=critical||count>=0x1c;
+  const period=critical?31-(units>>6):count>>1;
+  return {low,critical,lit,count,audible:lit&&g.mode==='playing'&&!g.refueling,frequency:31400/(6*(period+1))};
+ }
+}
+const fuelAlert=new FuelAlert();
 function drawSprite(ctx,name,x,y,scaleX=2,scaleY=2,flip=false,time=0){
  if(name==='fuel'){drawClassicFuel(ctx,x,y,scaleX,scaleY);return}
 
@@ -298,10 +329,21 @@ function drawSprite(ctx,name,x,y,scaleX=2,scaleY=2,flip=false,time=0){
 const pixelLetters={F:['111','100','110','100','100'],U:['101','101','101','101','111'],E:['111','100','110','100','111'],L:['100','100','100','100','111'],0:['111','101','101','101','111'],1:['010','110','010','010','111'],2:['111','001','111','100','111'],3:['111','001','111','001','111'],4:['101','101','111','001','001'],5:['111','100','111','001','111'],6:['111','100','111','101','111'],7:['111','001','010','010','010'],8:['111','101','111','101','111'],9:['111','101','111','001','111']};
 function pixelText(c,text,x,y,s,color){c.fillStyle=color;for(const letter of String(text)){const rows=pixelLetters[letter];if(rows)for(let r=0;r<5;r++)for(let p=0;p<3;p++)if(rows[r][p]==='1')c.fillRect(x+p*s,y+r*s,s,s);x+=4*s}}
 function drawClassicFuel(c,x,y,sx,sy){c.save();const left=Math.round(x-4*sx),top=Math.round(y-11.5*sy);c.fillStyle='#ebded0';c.fillRect(left,top,8*sx,23*sy);c.fillStyle='#e45e53';c.fillRect(left,top,8*sx,6*sy);c.fillRect(left,top+12*sy,8*sx,5*sy);c.fillStyle='#e45e53';c.fillRect(left+sx,top-sy,6*sx,sy);c.translate(left+2*sx,top+sy);c.scale(sx,sy);for(const [i,letter] of [...'FUEL'].entries())pixelText(c,letter,0,i*5.5,1,'#2938b0');c.restore()}
-function drawRetroGauge(){const canvas=$('retroGauge'),c=canvas.getContext('2d');c.imageSmoothingEnabled=false;const modern=renderer.mode==='modern',ink=modern?'#d7edf2':'#070907',accent=modern?'#91f5de':'#ece95a';c.fillStyle=modern?'#233748':'#898c86';c.fillRect(0,0,320,72);const score=String(game.score);pixelText(c,score,160-score.length*5,4,2,accent);pixelText(c,String(game.lives),12,59,2,accent);c.strokeStyle=ink;c.lineWidth=3;c.strokeRect(105,24,110,26);pixelText(c,'E',112,34,2,ink);pixelText(c,'1',145,28,1.5,ink);pixelText(c,'2',157,36,1.5,ink);pixelText(c,'F',195,34,2,ink);c.fillStyle=ink;for(const x of [114,159,204])c.fillRect(x,25,3,5);c.lineWidth=2;c.beginPath();c.moveTo(148,44);c.lineTo(165,30);c.stroke();const x=114+90*game.fuel/100;c.fillStyle=game.fuel<25?'#ff675d':accent;c.fillRect(Math.round(x)-1,30,3,18);canvas.setAttribute('aria-valuenow',Math.ceil(game.fuel));const mobile=$('mobileRetroGauge'),m=mobile.getContext('2d'),width=Math.max(1,Math.round(mobile.getBoundingClientRect().width));
+function drawFuelBacklight(c,x,y,w,h,g){
+ const alert=fuelAlert.sample(g);
+ if(!alert.low||w<=0||h<=0)return;
+ // Soft illumination of the dial, with the original alarm's cadence.
+ // The dial face is painted before the markings and needle, keeping them crisp.
+ const strength=alert.critical ? .22 : alert.lit ? .18*Math.sin(Math.PI*(63-alert.count)/36) : 0;
+ if(strength<=0)return;
+ c.save();const light=c.createLinearGradient(0,y,0,y+h);
+ for(const [stop,falloff] of [[0,.55],[.5,1],[1,.55]])light.addColorStop(stop,`rgba(255,64,56,${strength*falloff})`);
+ c.fillStyle=light;c.fillRect(x,y,w,h);c.restore();
+}
+function drawRetroGauge(){const canvas=$('retroGauge'),c=canvas.getContext('2d');c.imageSmoothingEnabled=false;const modern=renderer.mode==='modern',ink=modern?'#d7edf2':'#070907',accent=modern?'#91f5de':'#ece95a';c.fillStyle=modern?'#233748':'#898c86';c.fillRect(0,0,320,72);const score=String(game.score);pixelText(c,score,160-score.length*5,4,2,accent);pixelText(c,String(game.lives),12,59,2,accent);drawFuelBacklight(c,107,26,106,22,game);c.strokeStyle=ink;c.lineWidth=3;c.strokeRect(105,24,110,26);pixelText(c,'E',112,34,2,ink);pixelText(c,'1',145,28,1.5,ink);pixelText(c,'2',157,36,1.5,ink);pixelText(c,'F',195,34,2,ink);c.fillStyle=ink;for(const x of [114,159,204])c.fillRect(x,25,3,5);c.lineWidth=2;c.beginPath();c.moveTo(148,44);c.lineTo(165,30);c.stroke();const x=114+90*game.fuel/100;c.fillStyle=game.fuel<25?'#ff675d':accent;c.fillRect(Math.round(x)-1,30,3,18);canvas.setAttribute('aria-valuenow',Math.ceil(game.fuel));const mobile=$('mobileRetroGauge'),m=mobile.getContext('2d'),width=Math.max(1,Math.round(mobile.getBoundingClientRect().width));
 // Draw at the actual display width. Only the gauge rail length grows;
 // letter shapes and the needle retain equal horizontal/vertical scale.
-mobile.width=width*2;mobile.height=60;m.setTransform(2,0,0,2,0,0);m.imageSmoothingEnabled=false;m.fillStyle=modern?'#233748':'#898c86';m.fillRect(0,0,width,30);
+mobile.width=width*2;mobile.height=60;m.setTransform(2,0,0,2,0,0);m.imageSmoothingEnabled=false;m.fillStyle=modern?'#233748':'#898c86';m.fillRect(0,0,width,30);drawFuelBacklight(m,4,4,width-8,22,game);
 m.strokeStyle=ink;m.lineWidth=2;m.strokeRect(2,2,width-4,26);pixelText(m,'E',10,13,2,ink);pixelText(m,'F',width-22,13,2,ink);pixelText(m,'1',width/2-8,7,1.5,ink);pixelText(m,'2',width/2+4,15,1.5,ink);
 m.fillStyle=ink;for(const tick of [12,width/2,width-14])m.fillRect(tick,3,3,5);m.lineWidth=2;m.beginPath();m.moveTo(width/2-11,23);m.lineTo(width/2+6,9);m.stroke();
 m.fillStyle=game.fuel<25?'#ff675d':accent;m.fillRect(Math.round(12+(width-26)*game.fuel/100)-1,8,3,18);mobile.setAttribute('aria-valuenow',Math.ceil(game.fuel))}
@@ -466,73 +508,134 @@ class ModernRenderer{
 // terrain and objects; it never moves them or requests more map sections.
 class CockpitRenderer{
  constructor(canvas){this.ctx=canvas.getContext('2d',{alpha:false})}
- view(g){return {world:g.camera+H-g.player.y,x:g.player.x,horizon:82+(g.player.y-354)*.04,altitude:44+(354-g.player.y)*.03,near:32,focal:176,far:g.player.y}}
- project(v,x,depth,z=0){const scale=v.focal/Math.max(12,depth+v.near);return{x:Math.round(W/2+(x-v.x)*scale),y:Math.round(v.horizon+(v.altitude-z)*scale),scale}}
+ // The eye is eight map units behind the player, rather than 32. At the
+ // existing ship collision distance (8 + 11), its hull reaches the nose.
+ view(g){return {world:g.camera+H-g.player.y,x:g.player.x,horizon:82+(g.player.y-354)*.04,altitude:48+(354-g.player.y)*.03,near:8,focal:144,far:g.player.y}}
+ project(v,x,depth,z=0){const scale=v.focal/Math.max(5,depth+v.near);return{x:Math.round(W/2+(x-v.x)*scale),y:Math.round(v.horizon+(v.altitude-z)*scale),scale}}
  polygon(c,points,color){c.fillStyle=color;c.beginPath();points.forEach((p,i)=>i?c.lineTo(Math.round(p[0]),Math.round(p[1])):c.moveTo(Math.round(p[0]),Math.round(p[1])));c.closePath();c.fill()}
+ face(v,points,color){this.polygon(this.ctx,points.map(([x,d,z=0])=>{const p=this.project(v,x,d,z);return[p.x,p.y]}),color)}
  footprint(c,v,x,d,w,h,color){const points=[[x-w/2,d+h/2],[x+w/2,d+h/2],[x+w/2,d-h/2],[x-w/2,d-h/2]].map(([px,pd])=>{const p=this.project(v,px,pd);return[p.x,p.y]});this.polygon(c,points,color);return points}
+ box(v,x,d,w,h,z,height,colors){
+  const a=x-w/2,b=x+w/2,f=d-h/2,r=d+h/2;
+  this.face(v,[[a,f,z],[a,r,z],[a,r,z+height],[a,f,z+height]],colors[1]);
+  this.face(v,[[b,f,z],[b,r,z],[b,r,z+height],[b,f,z+height]],colors[1]);
+  this.face(v,[[a,f,z],[b,f,z],[b,f,z+height],[a,f,z+height]],colors[1]);
+  this.face(v,[[a,f,z+height],[b,f,z+height],[b,r,z+height],[a,r,z+height]],colors[0]);
+ }
  terrain(g,v){const c=this.ctx;
-  c.fillStyle='#82d4cc';c.fillRect(0,0,W,H);c.fillStyle='#aadfc0';c.fillRect(0,52,W,31);
-  // Hard-edged sky, clouds and a stepped tree line, with an Atari-sized palette.
-  for(const [x,y,w] of [[28,25,44],[216,16,55],[131,43,27]]){c.fillStyle='#dce9cc';c.fillRect(x,y,w,5);c.fillRect(x+6,y-4,w-16,4)}
-  c.fillStyle='#355b36';for(let x=0;x<W;x+=8){const h=4+(Math.floor(visualHash(x)*4))*3;c.fillRect(x,Math.floor(v.horizon)-h,8,h+3)}
+  c.fillStyle='#86d3b6';c.fillRect(0,0,W,H);c.fillStyle='#aecb90';c.fillRect(0,52,W,31);
+  for(const [x,y,w] of [[28,25,44],[216,16,55],[131,43,27]]){c.fillStyle='#e4e4ba';c.fillRect(x,y,w,5);c.fillRect(x+6,y-4,w-16,4)}
+  // Distant silhouettes are decorative; map sampling never exceeds the
+  // range already visible in the overhead game.
+  this.polygon(c,[[0,83],[0,58],[20,58],[20,45],[45,45],[45,60],[67,60],[67,72],[94,72],[94,83]],'#527c38');
+  this.polygon(c,[[228,83],[228,72],[248,72],[248,57],[268,57],[268,41],[294,41],[294,52],[320,52],[320,83]],'#3f6631');
   for(let y=Math.floor(v.horizon)+1;y<H;y+=2){
-   const scale=(y-v.horizon)/v.altitude,depth=clamp(v.altitude*v.focal/(y-v.horizon)-v.near,-12,v.far);
+   const scale=(y-v.horizon)/v.altitude,depth=clamp(v.altitude*v.focal/(y-v.horizon)-v.near,-6,v.far);
    const t=g.river.terrain(v.world+depth),left=Math.round(W/2+(t.left-v.x)*scale),right=Math.round(W/2+(t.right-v.x)*scale);
-   c.fillStyle=t.stage%2?'#83a543':'#719a42';c.fillRect(0,y,W,2);
+   c.fillStyle='#719a42';c.fillRect(0,y,W,2);
    c.fillStyle=depth>175?'#3546a9':'#303abd';c.fillRect(left,y,right-left,2);
-   c.fillStyle='#9db85b';c.fillRect(left-2,y,2,2);c.fillRect(right,y,2,2);
-   if(t.islandRight>t.islandLeft){const a=Math.round(W/2+(t.islandLeft-v.x)*scale),b=Math.round(W/2+(t.islandRight-v.x)*scale);c.fillStyle='#719a42';c.fillRect(a,y,b-a,2);c.fillStyle='#9db85b';c.fillRect(a,y,2,2);c.fillRect(b-2,y,2,2)}
+   c.fillStyle='#add069';c.fillRect(left-2,y,2,2);c.fillRect(right,y,2,2);
+   if(t.islandRight>t.islandLeft){const a=Math.round(W/2+(t.islandLeft-v.x)*scale),b=Math.round(W/2+(t.islandRight-v.x)*scale);c.fillStyle='#719a42';c.fillRect(a,y,b-a,2);c.fillStyle='#add069';c.fillRect(a,y,2,2);c.fillRect(b-2,y,2,2)}
   }
-  // Ripples are locked to world distance, so their motion is the real scroll.
+  // Sloped faces end exactly at the original water/land collision boundary.
+  // Pixel steps and strata give volume without adding any obstacles.
+  const levels=[[0,0],[10,8],[27,24],[43,35],[63,38]];
+  for(let back=v.far;back> -6;back-=6){const front=Math.max(-6,back-6),a=g.river.terrain(v.world+back),b=g.river.terrain(v.world+front);
+   for(const side of [-1,1])for(let n=0;n<levels.length-1;n++){
+    const [w0,z0]=levels[n],[w1,z1]=levels[n+1],edgeA=side<0?a.left:a.right,edgeB=side<0?b.left:b.right;
+    const colors=side<0?['#9db85b','#719a42','#83a543','#4e7434']:['#709543','#547b35','#6b9242','#375b2c'];
+    this.face(v,[[edgeA+side*w0,back,z0],[edgeA+side*w1,back,z1],[edgeB+side*w1,front,z1],[edgeB+side*w0,front,z0]],colors[n]);
+    if(n===1&&Math.floor((v.world+front)/24)!==Math.floor((v.world+back)/24)){
+     this.face(v,[[edgeB+side*17,front,14],[edgeB+side*27,front,24],[edgeB+side*27,front+1,24],[edgeB+side*17,front+1,14]],side<0?'#5b8436':'#41652d');
+    }
+   }
+  }
   for(let n=Math.floor(v.world/32);n<=(v.world+v.far)/32;n++)for(let j=0;j<3;j++){
    const depth=n*32-v.world,x=66+((n*53+j*71)%185);if(depth<2)continue;
    const t=g.river.terrain(n*32);if(x<=t.left+3||x>=t.right-3||(t.islandRight>t.islandLeft&&x>=t.islandLeft-3&&x<=t.islandRight+3))continue;
    const p=this.project(v,x,depth);c.fillStyle='#6873ce';c.fillRect(p.x,p.y,Math.max(2,Math.round(p.scale*4)),1);
   }
  }
+ ship(v,o,d){const c=this.ctx,dir=o.dir||1,x=o.x;
+  // A tapered bow, dark hull, light deck, wheelhouse, portholes and funnel.
+  // Its water footprint is the same 32 x 16 as the game object.
+  const hull=[[-16,-5],[-12,-8],[10,-8],[16,0],[10,8],[-12,8],[-16,5]].map(([px,pd])=>[x+px*dir,d+pd]);
+  this.face(v,hull.map(([px,pd])=>[px,pd,0]),'#243e3c');
+  for(let i=0;i<hull.length;i++){const a=hull[i],b=hull[(i+1)%hull.length];this.face(v,[[...a,0],[...b,0],[...b,4],[...a,4]],i<4?'#665242':'#3a4341')}
+  this.face(v,hull.map(([px,pd])=>[px,pd,4]),'#d9bf83');
+  this.box(v,x-3*dir,d,11,9,4,6,['#e9deb2','#bfb997']);
+  this.box(v,x-6*dir,d+1,6,6,10,3,['#f2e8c3','#cec4a2']);
+  for(const px of [-6,-2])this.face(v,[[x+px*dir,d-4.6,6],[x+(px+2)*dir,d-4.6,6],[x+(px+2)*dir,d-4.6,9],[x+px*dir,d-4.6,9]],'#27475c');
+  this.box(v,x+5*dir,d+1,3,4,4,8,['#c57a4c','#875437']);
+  this.box(v,x+5*dir,d+1,3,4,12,1.5,['#293b38','#293b38']);
+  const mast=this.project(v,x-8*dir,d,16),foot=this.project(v,x-8*dir,d,12);c.fillStyle='#4e5142';c.fillRect(mast.x,mast.y,Math.max(1,mast.scale*.4),Math.max(1,foot.y-mast.y));
+  const stern=this.project(v,x-15*dir,d),k=stern.scale;c.fillStyle='#b3d1da';c.fillRect(stern.x-dir*3*k,stern.y,3*k,Math.max(1,k));
+ }
+ aircraft(g,v,o,d){const c=this.ctx,dir=o.dir||1,t=g.river.terrain(o.world);
+  // Incoming fighters clear the canyon rim and visually descend into the
+  // channel. This height is presentation only; patrol positions are untouched.
+  const height=o.type==='heli'?8:5+35*clamp((Math.max(t.left-o.x,o.x-t.right)+10)/30,0,1),q=this.project(v,o.x,d,height),k=q.scale;
+  c.save();c.translate(q.x,q.y);c.scale(k*dir,k);
+  const poly=(pts,col)=>this.polygon(c,pts,col);
+  if(o.type==='heli'){
+   // Side-on cabin and tail make the lateral patrol direction unambiguous.
+   poly([[-8,-1],[-4,-2],[-3,-5],[2,-5],[6,-3],[8,0],[6,4],[-2,4],[-4,1],[-8,1]],'#aabc66');
+   poly([[1,-4],[4,-3],[6,-1],[1,-1]],'#274e70');c.fillStyle='#d1d795';c.fillRect(-3,-4,3,2);
+   poly([[-8,0],[-7,-5],[-5,-5],[-5,0]],'#65864f');
+   c.fillStyle='#3c4638';c.fillRect(-2,-7,1,3);c.fillRect(-4,5,10,1);c.fillRect(-2,3,1,2);c.fillRect(4,3,1,2);
+   const phase=Math.floor(g.time*14)%3;c.fillStyle='#e5d597';c.fillRect(-10+phase,-8,20-phase*2,1);c.fillStyle='#5c6748';c.fillRect(-2,-9,2,1);
+   c.fillStyle='#e5d597';if(phase===1)c.fillRect(-8,-4,1,5);else c.fillRect(-10,-2,5,1);
+  }else{
+   // Swept wings, long nose, canopy, fin and two engine exhausts.
+   poly([[-8,-1],[-6,-3],[1,-3],[8,0],[1,2],[-6,2]],'#d6d6a1');
+   poly([[-6,-2],[-7,-6],[-5,-6],[-2,-2]],'#b0af78');
+   poly([[-3,-1],[-5,-5],[0,-3],[3,-1],[0,2],[-5,6],[-6,5],[-3,1]],'#aaa879');
+   poly([[0,-3],[3,-2],[4,-1],[0,-1]],'#365c78');c.fillStyle='#f2e0a1';c.fillRect(4,-1,3,1);
+   c.fillStyle='#53615d';c.fillRect(-7,0,3,1);c.fillStyle=Math.floor(g.time*16)%2?'#f1b254':'#d77442';c.fillRect(-9,0,2,1);
+   c.fillStyle='#424e43';c.fillRect(-5,3,2,1);
+  }
+  c.restore();
+ }
  object(g,v,o){const c=this.ctx,d=o.world-v.world,p=this.project(v,o.x,d),s=p.scale;
   if(o.type==='bridge'){
    const t=g.river.terrain(o.world),middle=(t.left+t.right)/2;
    this.footprint(c,v,W/2,d,W,24,'#888d84');
-   if(o.dead){this.footprint(c,v,middle,d,t.right-t.left,24,'#303abd');for(const x of [t.left,t.right]){const q=this.project(v,x,d);c.fillStyle='#c2c8a0';c.fillRect(q.x-2,q.y-3,4,4)}}
+   if(o.dead){this.footprint(c,v,middle,d,t.right-t.left,24,'#304fbe');for(const x of [t.left,t.right]){const q=this.project(v,x,d);c.fillStyle='#c2c8a0';c.fillRect(q.x-2,q.y-3,4,4)}}
    else{this.footprint(c,v,middle,d,t.right-t.left,24,'#b8774c');for(const offset of [-11,11]){const a=this.project(v,t.left,d+offset),b=this.project(v,t.right,d+offset);c.fillStyle='#efd1a0';c.fillRect(a.x,a.y-3,b.x-a.x,3);c.fillStyle='#5c473a';for(let x=a.x+4;x<b.x;x+=Math.max(5,Math.round(9*s)))c.fillRect(x,a.y-6,2,6)}}
    return;
   }
   if(o.dead)return;
   if(o.type==='fuel'){
-   this.footprint(c,v,o.x,d,14,46,'#d7d9b3');
-   for(const z of [-17,5])this.footprint(c,v,o.x,d+z,14,10,'#d9544b');
+   this.footprint(c,v,o.x,d,14,46,'#d7d9b3');for(const z of [-17,5])this.footprint(c,v,o.x,d+z,14,10,'#d9544b');
    const nose=this.project(v,o.x,d-18),w=Math.max(9,Math.round(14*nose.scale)),hh=Math.max(7,Math.round(7*s));
    c.fillStyle='#d9544b';c.fillRect(nose.x-w/2,nose.y-hh,w,hh);const unit=Math.max(1,Math.floor(w/19));pixelText(c,'FUEL',Math.round(nose.x-7.5*unit),Math.round(nose.y-hh+(hh-5*unit)/2),unit,'#182c85');
-  }else if(o.type==='ship'){
-   this.footprint(c,v,o.x,d,32,16,'#183d31');const q=this.project(v,o.x,d,6),w=Math.max(6,Math.round(25*s)),h=Math.max(3,Math.round(5*s));c.fillStyle='#dca36d';c.fillRect(q.x-w/2,q.y,w,h);c.fillStyle='#597331';c.fillRect(q.x-w*.25,q.y-h,Math.max(4,w*.45),h);c.fillStyle='#ece8b5';c.fillRect(q.x-w*.2,q.y-h,Math.max(3,w*.23),Math.max(1,h*.4));
-  }else if(o.type==='heli'){
-   const q=this.project(v,o.x,d,12),k=Math.max(.5,s);
-   c.fillStyle='#243e24';c.fillRect(p.x-5*k,p.y,10*k,2);c.fillStyle='#b6cd73';c.fillRect(q.x-5*k,q.y-4*k,10*k,7*k);c.fillRect(q.x-7*k,q.y-k,14*k,3*k);c.fillStyle='#354e82';c.fillRect(q.x-3*k,q.y-3*k,6*k,2*k);
-   c.fillStyle='#f1d78a';const rw=(Math.floor(g.time*12)%2?12:19)*k;c.fillRect(q.x-rw/2,q.y-6*k,rw,Math.max(1,k));c.fillStyle='#243e24';c.fillRect(q.x-7*k,q.y+4*k,14*k,Math.max(1,k));
-  }else if(o.type==='plane'){
-   const q=this.project(v,o.x,d,14),k=Math.max(.5,s);this.polygon(c,[[q.x-9*k,q.y],[q.x-3*k,q.y-2*k],[q.x-2*k,q.y-6*k],[q.x+2*k,q.y-6*k],[q.x+3*k,q.y-2*k],[q.x+9*k,q.y],[q.x+9*k,q.y+2*k],[q.x+2*k,q.y+k],[q.x,q.y+5*k],[q.x-2*k,q.y+k],[q.x-9*k,q.y+2*k]],'#e8d65f');c.fillStyle='#934c41';c.fillRect(q.x-k,q.y-3*k,2*k,3*k);
-  }else if(o.type==='house'){
+  }else if(o.type==='ship')this.ship(v,o,d);
+  else if(o.type==='heli'||o.type==='plane')this.aircraft(g,v,o,d);
+  else if(o.type==='house'){
    const q=this.project(v,o.x,d,10),w=24*s,h=10*s;c.fillStyle='#dbddb7';c.fillRect(q.x-w/2,q.y,w,h);this.polygon(c,[[q.x-w*.6,q.y],[q.x,q.y-6*s],[q.x+w*.6,q.y]],'#353d2c');c.fillStyle='#526d35';c.fillRect(q.x-w*.32,q.y+3*s,w*.18,3*s);c.fillRect(q.x+w*.14,q.y+3*s,w*.18,3*s);
   }
  }
  cabin(g,bank){const c=this.ctx;
   this.polygon(c,[[0,0],[28,0],[40,8],[18,8],[38,354],[28,362],[8,18],[0,18]],'#273934');this.polygon(c,[[320,0],[292,0],[280,8],[302,8],[282,354],[292,362],[312,18],[320,18]],'#273934');
   c.fillStyle='#70816a';c.fillRect(0,0,W,5);c.fillStyle='#18251f';c.fillRect(0,5,W,3);
-  // Sight and nose are fixed in the cabin; the projected world moves around them.
   c.fillStyle='#eff0b0';for(const [x,y,w,h] of [[147,176,8,1],[165,176,8,1],[160,163,1,8],[160,182,1,7]])c.fillRect(x,y,w,h);
   this.polygon(c,[[123,359],[139,335],[181,335],[197,359]],'#899484');c.fillStyle='#c3c7a8';c.fillRect(141,335,38,3);c.fillStyle='#536649';c.fillRect(154,339,12,17);
   this.polygon(c,[[0,370],[57,350],[111,357],[209,357],[263,350],[320,370],[320,416],[0,416]],'#15251f');this.polygon(c,[[0,378],[58,360],[110,366],[210,366],[262,360],[320,378],[320,416],[0,416]],'#475b48');c.fillStyle='#a2ad82';c.fillRect(70,365,180,3);
-  c.fillStyle='#111d1a';c.fillRect(17,380,94,27);c.fillRect(124,377,72,31);c.fillRect(209,380,94,27);
-  pixelText(c,'FUEL',22,383,1,'#d9df9e');c.fillStyle='#788369';c.fillRect(22,394,82,7);c.fillStyle=g.fuel<25?'#df694a':'#dfdf72';c.fillRect(22,394,Math.round(82*g.fuel/100),7);
-  c.strokeStyle='#8cb89e';c.lineWidth=1;c.strokeRect(135,383,50,17);c.fillStyle='#84ceb4';c.fillRect(138,390,44,2);c.fillStyle='#dfdf72';const bx=Math.round(160+bank*17);c.fillRect(bx-7,389,14,2);c.fillRect(bx-1,386,2,8);
-  pixelText(c,Math.round(g.speed),222,385,2,'#d9df9e');c.fillStyle='#91a87c';c.fillRect(221,400,61,2);
-  if(g.refueling){c.fillStyle='#b3d987';c.fillRect(114,391,4,4)}
+  c.fillStyle='#111d1a';c.fillRect(15,378,122,33);c.fillRect(142,378,67,33);c.fillRect(216,378,89,33);
+  // The original E / 1/2 / F face, including its yellow moving marker.
+  c.fillStyle='#898c86';c.fillRect(20,383,112,24);drawFuelBacklight(c,22,385,108,20,g);c.strokeStyle='#090e0c';c.lineWidth=2;c.strokeRect(20,383,112,24);
+  pixelText(c,'E',26,395,2,'#090e0c');pixelText(c,'F',116,395,2,'#090e0c');pixelText(c,'1',65,386,1,'#090e0c');pixelText(c,'2',79,398,1,'#090e0c');
+  for(const x of [29,75,122]){c.fillStyle='#090e0c';c.fillRect(x,384,2,4)}
+  c.beginPath();c.moveTo(67,402);c.lineTo(83,388);c.stroke();c.fillStyle=g.fuel<25?'#f27953':'#ece95a';c.fillRect(Math.round(29+93*g.fuel/100)-1,389,3,16);
+  c.textAlign='left';c.font='bold 6px monospace';c.fillStyle='#dce0aa';c.fillText('PUNKTY',147,386);pixelText(c,String(g.score).padStart(6,'0'),147,393,2,'#ece59a');
+  c.fillText('ZYCIA',222,386);this.polygon(c,[[224,397],[230,395],[231,391],[233,391],[234,395],[240,397],[240,399],[234,398],[233,403],[231,403],[230,398],[224,399]],'#ece59a');
+  c.font='bold 9px monospace';c.fillText('x',247,402);pixelText(c,g.lives,258,393,2,'#ece59a');
+  c.fillStyle='#a4c3a0';c.fillRect(146,371,28,1);const bx=Math.round(160+bank*12);c.fillStyle='#e8df99';c.fillRect(bx-4,370,9,2);
+  if(g.refueling){c.fillStyle='#b3d987';c.fillRect(128,372,4,3)}
  }
  draw(g,bank=0){const c=this.ctx,v=this.view(g);c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over';c.imageSmoothingEnabled=false;c.fillStyle='#15251f';c.fillRect(0,0,W,H);
   c.save();c.translate(W/2,H*.45);c.rotate(-bank*.045);c.translate(-W/2,-H*.45);this.terrain(g,v);
-  const objects=g.objects.filter(o=>o.world-v.world>=-14&&o.world-v.world<=v.far).slice().sort((a,b)=>b.world-a.world);
-  for(const o of objects)this.object(g,v,o);
+  const objects=g.objects.filter(o=>o.world-v.world>=-14&&o.world-v.world<=v.far).slice().sort((a,b)=>b.world-a.world);for(const o of objects)this.object(g,v,o);
   if(g.bullet){const d=g.player.y-g.bullet.y;if(d>=-8&&d<=v.far){const p=this.project(v,g.bullet.x,d,6);c.fillStyle='#f1ec85';c.fillRect(p.x-1,p.y-6,2,8);c.fillStyle='#fff5cb';c.fillRect(p.x,p.y-8,1,3)}}
   for(const particle of g.particles){const d=g.player.y-particle.y;if(d< -10||d>v.far)continue;const p=this.project(v,particle.x,d,5),size=Math.max(1,Math.min(6,Math.round(particle.life*4*p.scale)));c.fillStyle=particle.color;c.fillRect(p.x,p.y,size,size)}
   for(const t of g.texts){const p=this.project(v,t.x,g.player.y-t.y,12);if(p.y<95||p.y>355)continue;c.fillStyle='#f3e5a2';c.font='bold 8px monospace';c.textAlign='center';c.fillText(t.text,p.x,p.y)}
@@ -558,6 +661,7 @@ function clearInput(){keyboard.clear();const ids=[...touches.keys()];touches.cle
 function begin(){clearInput();sound.unlock();game.start();sync(true);$('start').blur()}
 function pause(){clearInput();game.pause();sync(true)}
 function sync(force=false){
+ sound.update(game);
  if(overlayMode!==game.mode&&game.mode!=='playing')clearInput();
  document.body.dataset.gameMode=game.mode;$('mobilePause').disabled=!['playing','paused'].includes(game.mode);$('mobilePause').textContent=game.mode==='paused'?'▶':'Ⅱ';$('mobilePause').setAttribute('aria-label',game.mode==='paused'?'Wznów lot':'Pauza');
  $('score').textContent=String(game.score).padStart(6,'0');$('best').textContent=String(game.best).padStart(6,'0');
@@ -572,7 +676,7 @@ function sync(force=false){
  }
 }
 $('start').addEventListener('click',()=>game.mode==='paused'?pause():begin());$('restart').addEventListener('click',begin);$('pause').addEventListener('click',pause);
-$('sound').addEventListener('click',()=>{sound.enabled=!sound.enabled;if(sound.enabled){sound.unlock();sound.play('fuel')}$('sound').textContent='Dźwięk: '+(sound.enabled?'wł.':'wył.');$('sound').setAttribute('aria-pressed',String(sound.enabled))});
+$('sound').addEventListener('click',()=>{sound.enabled=!sound.enabled;if(sound.enabled){sound.unlock();sound.play('fuel')}sound.update(game);$('sound').textContent='Dźwięk: '+(sound.enabled?'wł.':'wył.');$('sound').setAttribute('aria-pressed',String(sound.enabled))});
 for(const b of document.querySelectorAll('.tool'))b.addEventListener('click',e=>{if(e.detail)b.blur()});
 window.addEventListener('keydown',e=>{
  if($('mobileSettings').open)return;
@@ -594,6 +698,9 @@ function setGraphics(mode,persist=true){
  }
  renderer.draw(game);
  settingsSync();
+ // Switching cockpit changes the space reserved for external instruments.
+ // Refit after the initial script has also created the phone media query.
+ queueMicrotask(fitPhoneViewport);
 }
 for(const [id,mode] of [['graphicsClassic','classic'],['graphicsModern','modern'],['graphicsCockpit','cockpit']])$(id).addEventListener('click',e=>{setGraphics(mode);if(e.detail)$(id).blur()});
 let savedGraphics=document.body.dataset.defaultGraphics||'classic';try{savedGraphics=localStorage.getItem(graphicsStorageKey)||savedGraphics}catch{}setGraphics(savedGraphics,false);
@@ -675,9 +782,10 @@ document.addEventListener('fullscreenchange',()=>{clearInput();phoneLayout();$('
 settingsSync();phoneLayout();
 
 let previous=performance.now(),accumulator=0;
-function frame(now){const elapsed=Math.min(.1,(now-previous)/1000);previous=now;accumulator+=elapsed;while(accumulator>=STEP){game.tick(STEP,consumeInput());accumulator-=STEP}renderer.draw(game);if(now-lastUI>80){sync();lastUI=now}requestAnimationFrame(frame)}sync(true);renderer.draw(game);requestAnimationFrame(frame);
+function frame(now){const elapsed=Math.min(.1,(now-previous)/1000);previous=now;accumulator+=elapsed;while(accumulator>=STEP){game.tick(STEP,consumeInput());accumulator-=STEP}sound.update(game);renderer.draw(game);if(now-lastUI>80){sync();lastUI=now}requestAnimationFrame(frame)}sync(true);renderer.draw(game);requestAnimationFrame(frame);
 // Opt-in inspection interface for the local verification suite only.
-if(new URLSearchParams(location.search).has('test'))window.__rr={game,Game,River,LFSR,renderer,begin,pause,sync,input,consumeInput,clearInput,constants:{W,H,SECTION,STEP,BURN,REFILL,POINTS,CRUISE,MIN_SPEED,MAX_SPEED,INITIAL_LIVES,MAX_LIVES}};
+if(new URLSearchParams(location.search).has('test'))window.__rr={game,Game,River,LFSR,renderer,sound,fuelAlert,begin,pause,sync,input,consumeInput,clearInput,constants:{W,H,SECTION,STEP,BURN,REFILL,POINTS,CRUISE,MIN_SPEED,MAX_SPEED,INITIAL_LIVES,MAX_LIVES}};
 </script>
 </body>
 </html>
+

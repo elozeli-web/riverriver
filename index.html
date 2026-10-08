@@ -106,11 +106,11 @@ body.desktop-ui{position:fixed;inset:0;width:100%;height:var(--app-height,100dvh
 </div>
 <div class="instrument-panel"><canvas id="mobileRetroGauge" width="232" height="64" role="meter" aria-label="Paliwo: E pusto, połowa, F pełny" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"></canvas><div class="fuel-label"><span>PALIWO <span id="refuel"></span></span><span id="fuelValue">100%</span></div><div class="fuel-track" id="fuelTrack" role="meter" aria-label="Poziom paliwa" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div class="fuel-fill" id="fuelFill"></div></div><div class="flight-data"><span>ETAP <strong id="stage">01</strong></span><span role="img" aria-label="Pozostałe życia" id="lives"><span class="life-plane">▲▲▲</span></span></div><div class="status"><span id="status" aria-live="polite">OCZEKIWANIE NA PILOTA</span><span id="speed">PRĘDKOŚĆ 1.0×</span></div></div>
 <div class="retro-panel" id="retroPanel"><canvas id="retroGauge" width="320" height="72" role="meter" aria-label="Paliwo: E pusto, połowa, F pełny" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"></canvas></div><div class="gesture-dock" aria-label="Pole sterowania pod grą"><div class="touch-zones" aria-label="Sterowanie dotykowe"><div class="touch-zone" id="steerZone" role="group" aria-label="Lewa połowa: przeciągaj samolot ruchem palca. Zatrzymaj palec, aby zatrzymać samolot."></div><div class="touch-zone" id="fireZone" role="group" aria-label="Prawa połowa: dotknij i przytrzymaj, aby strzelać."></div></div></div>
-<div class="toolbar"><button type="button" class="tool" id="pause" disabled>Pauza · P</button><button type="button" class="tool" id="restart">Nowa gra · R</button><button type="button" class="tool" id="sound" aria-pressed="false">Dźwięk: wył.</button><button type="button" class="tool" id="assist" aria-pressed="true">Pomoc brzegu: wł.</button></div>
+<div class="toolbar"><button type="button" class="tool" id="pause" disabled>Pauza · P</button><button type="button" class="tool" id="restart">Nowa gra · R</button><button type="button" class="tool" id="sound" aria-pressed="true">Dźwięk: wł.</button><button type="button" class="tool" id="assist" aria-pressed="true">Pomoc brzegu: wł.</button></div>
 </section>
 <aside class="right"><div><div class="caption">ZADANIE PILOTA</div><p class="mission">Leć w górę rzeki. Przejście przez most wymaga celnego strzału. Po utracie samolotu wrócisz na początek etapu.</p></div><div class="targets"><div class="caption">CELE I PUNKTACJA</div><div class="target-list"><div class="target"><canvas data-sprite="ship" width="40" height="32"></canvas><span>Statek</span><em>30</em></div><div class="target"><canvas data-sprite="heli" width="40" height="32"></canvas><span>Śmigłowiec</span><em>60</em></div><div class="target"><canvas data-sprite="fuel" width="40" height="32"></canvas><span>Baza FUEL</span><em>80</em></div><div class="target"><canvas data-sprite="plane" width="40" height="32"></canvas><span>Odrzutowiec</span><em>100</em></div><div class="target"><canvas data-sprite="bridge" width="40" height="32"></canvas><span>Most</span><em>500</em></div></div></div><div class="tip"><strong>NIE STRZELAJ DO ZAPASÓW</strong>Przeleć nad bazą FUEL, żeby zatankować. Zwolnij, aby uzupełnić więcej paliwa. Zniszczona baza daje punkty, ale nie zatankuje samolotu.</div><p class="bonus">+1 życie za każde 10 000 pkt.<br>Rekord zapisuje się w tej przeglądarce.</p></aside>
 </main>
-<dialog class="mobile-settings" id="mobileSettings" aria-labelledby="settingsTitle"><div class="settings-heading"><h2 id="settingsTitle">Ustawienia</h2><button class="app-icon" id="closeSettings" type="button" aria-label="Zamknij ustawienia"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div><span class="settings-label">Grafika</span><div class="settings-choices" role="group" aria-label="Wybór grafiki"><button id="menuClassic" type="button" aria-pressed="true">Klasyczna</button><button id="menuModern" type="button" aria-pressed="false">Nowoczesna HD</button><button id="menuCockpit" type="button" aria-pressed="false">Kokpit · 8 bit</button></div><button class="settings-action" id="menuSound" type="button" aria-pressed="false">Dźwięk: wyłączony</button><button class="settings-action" id="menuAssist" type="button" aria-pressed="true">Pomoc przy brzegu: włączona</button><button class="settings-action danger" id="menuRestart" type="button">Rozpocznij nową grę</button><button class="settings-done" id="settingsDone" type="button">Gotowe</button></dialog>
+<dialog class="mobile-settings" id="mobileSettings" aria-labelledby="settingsTitle"><div class="settings-heading"><h2 id="settingsTitle">Ustawienia</h2><button class="app-icon" id="closeSettings" type="button" aria-label="Zamknij ustawienia"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div><span class="settings-label">Grafika</span><div class="settings-choices" role="group" aria-label="Wybór grafiki"><button id="menuClassic" type="button" aria-pressed="true">Klasyczna</button><button id="menuModern" type="button" aria-pressed="false">Nowoczesna HD</button><button id="menuCockpit" type="button" aria-pressed="false">Kokpit · 8 bit</button></div><button class="settings-action" id="menuSound" type="button" aria-pressed="true">Dźwięk: włączony</button><button class="settings-action" id="menuAssist" type="button" aria-pressed="true">Pomoc przy brzegu: włączona</button><button class="settings-action danger" id="menuRestart" type="button">Rozpocznij nową grę</button><button class="settings-done" id="settingsDone" type="button">Gotowe</button></dialog>
 <footer class="bottom"><span>Oryginał: Carol Shaw / Activision, 1982.<br>Adaptacja na podstawie analiz ASM: Thomas Jentzsch i Matt Jernigan.</span><span>Działa offline · Bez instalacji<br><a href="CZYTAJ-MNIE.txt" target="_blank" rel="noopener">Instrukcja i informacje o porcie ↗</a></span></footer>
 <script>
 'use strict';
@@ -689,7 +689,7 @@ class CockpitRenderer{
    const depth=n*32-v.world,x=66+((n*53+j*71)%185);if(depth<2)continue;
    const t=g.river.terrain(n*32);if(x<=t.left+3||x>=t.right-3||(t.islandRight>t.islandLeft&&x>=t.islandLeft-3&&x<=t.islandRight+3))continue;
    const len=1+Math.max(0,(g.speed-MIN_SPEED)/36),p=this.project(v,x,depth),p2=this.project(v,x,depth+len),tw=Math.sin(g.time*3.2+visualHash(n*3+j)*6.28)>.55;
-   c.fillStyle=tw?'#c9d3ff':'#6873ce';c.fillRect(p.x,p2.y,Math.max(2,Math.round(p.scale*4)),Math.max(1,p.y-p2.y));
+   if(depth<30)continue;c.fillStyle=tw?'#c9d3ff':'#6873ce';c.fillRect(p.x,Math.max(p2.y,p.y-3),clamp(Math.round(p.scale*4),2,9),clamp(Math.round(p.y-p2.y),1,3));
   }
   // Mgiełka: odległy teren łagodnie przechodzi w pas horyzontu (6 schodków po 4 px).
   const hy=Math.floor(v.horizon);for(let i=0;i<6;i++){c.fillStyle='rgba(174,203,144,'+(.6*(1-i/6)).toFixed(2)+')';c.fillRect(-16,hy+i*4,W+32,4)}
@@ -949,18 +949,23 @@ class CockpitRenderer{
   }
   return contacts;
  }
- radar(g){const c=this.ctx,cx=160,cy=359;
-  const rounded=(size,radius,color)=>{c.fillStyle=color;for(let row=0;row<size;row++){const edge=Math.min(row,size-1-row),inset=edge>=radius?0:Math.ceil(radius-Math.sqrt(radius*radius-(radius-edge-.5)**2));c.fillRect(cx-(size-1)/2+inset,cy-(size-1)/2+row,size-inset*2,1)}};
-  rounded(51,5,'#101e17');rounded(47,4,'#859775');rounded(45,3,'#0e281c');rounded(41,2,'#143520');
-  const left=cx-20,top=cy-20,size=41,world=g.camera+H-g.player.y,kx=size/W,ky=size/260;
+ bolt(x,y){const c=this.ctx;c.fillStyle='#8a9a82';c.fillRect(x,y,2,2);c.fillStyle='#0b140e';c.fillRect(x+1,y+1,1,1)}
+ disk(cx,cy,r,col){const c=this.ctx;c.fillStyle=col;for(let y=-r;y<=r;y++){const h=Math.floor(Math.sqrt(r*r-y*y+.5));c.fillRect(cx-h,cy+y,h*2+1,1)}}
+ pocket(x,y,w,h){const c=this.ctx;c.fillStyle='#0b140e';c.fillRect(x-3,y-3,w+6,h+6);c.fillStyle='#4a5e4c';c.fillRect(x-3,y-3,w+6,1);c.fillRect(x-3,y-3,1,h+6);c.fillStyle='#101e17';c.fillRect(x-2,y-2,w+4,h+4)}
+ radar(g,bank=0){const c=this.ctx,cx=160,cy=322,wR=50,hR=56;
+  const rounded=(w,h,radius,color)=>{c.fillStyle=color;for(let row=0;row<h;row++){const edge=Math.min(row,h-1-row),inset=edge>=radius?0:Math.ceil(radius-Math.sqrt(radius*radius-(radius-edge-.5)**2));c.fillRect(cx-w/2+inset,cy-h/2+row,w-inset*2,1)}};
+  rounded(64,70,5,'#0b140e');rounded(62,68,5,'#101e17');rounded(58,64,4,'#859775');rounded(56,62,3,'#0e281c');rounded(54,60,2,'#143520');
+  const left=cx-wR/2,top=cy-hR/2,world=g.camera+H-g.player.y,kx=wR/W,ky=hR/260;
+  for(const [bx,by] of [[119,288],[199,288],[119,352],[199,352]])this.bolt(bx,by);
   const px=x=>Math.round(left+x*kx),py=w=>Math.round(top+(world+220-w)*ky);
   const warnings=new Set(this.radarContacts(g).filter(o=>o.danger).map(o=>o.object));
-  c.save();c.beginPath();c.roundRect(left,top,size,size,2);c.clip();c.fillStyle='#070b08';c.fillRect(left,top,size,size);
-  // The actual river on a dark navigation screen: 220 units ahead, 40 behind.
-  // The rear strip still includes each enemy's entire collision envelope.
-  for(let row=0;row<size;row++){
+  c.save();c.beginPath();c.roundRect(left,top,wR,hR,2);c.clip();c.fillStyle='#070b08';c.fillRect(left,top,wR,hR);
+  // Siatka nawigacyjna pod rzeką.
+  c.fillStyle='rgba(70,120,84,.2)';for(let gy=top+14;gy<top+hR;gy+=14)c.fillRect(left,gy,wR,1);for(let gx=left+12;gx<left+wR;gx+=13)c.fillRect(gx,top,1,hR);
+  // Prawdziwa rzeka na ciemnym ekranie: 220 jednostek przed samolotem, 40 za nim.
+  for(let row=0;row<hR;row++){
    const t=g.river.terrain(world+220-(row+.5)/ky),a=px(t.left),b=px(t.right);
-   c.fillStyle='#0b120d';c.fillRect(left,top+row,a-left,1);c.fillRect(b,top+row,left+size-b,1);
+   c.fillStyle='#0b120d';c.fillRect(left,top+row,a-left,1);c.fillRect(b,top+row,left+wR-b,1);
    c.fillStyle='#526359';c.fillRect(a-1,top+row,1,1);c.fillRect(b,top+row,1,1);
    c.fillStyle='#d7e3d8';c.fillRect(a,top+row,1,1);c.fillRect(b-1,top+row,1,1);
    if(t.islandRight>t.islandLeft){const il=px(t.islandLeft),ir=px(t.islandRight);c.fillStyle='#0b120d';c.fillRect(il,top+row,ir-il,1);c.fillStyle='#d7e3d8';c.fillRect(il,top+row,1,1);c.fillRect(ir-1,top+row,1,1)}
@@ -978,7 +983,8 @@ class CockpitRenderer{
   }
   if(g.bullet){const y=py(g.camera+H-g.bullet.y);c.fillStyle='#efda64';c.fillRect(px(g.bullet.x),y-1,1,2)}
   if(g.mode!=='dying'&&g.mode!=='gameover'){
-   const x=px(g.player.x),y=py(world);c.fillStyle='#ecdb4f';c.fillRect(x,y-2,1,5);c.fillRect(x-1,y,3,1);c.fillRect(x-1,y+2,3,1);
+   const x=px(g.player.x),y=py(world),rows=sprites[Math.abs(bank)>.06?'banked':'jet'],flip=bank<0;c.fillStyle='#ecdb4f';
+   rows.forEach((row,r)=>{for(let col=0;col<8;col++)if(row&(128>>col))c.fillRect(x-4+(flip?7-col:col),y-Math.floor(rows.length/2)+r,1,1)});
   }
   c.restore();
  }
@@ -994,90 +1000,108 @@ class CockpitRenderer{
   e.time=g.time;const t=1-Math.pow(1-clamp((g.time-e.start)/.6,0,1),3);return e.from.map((from,i)=>from+(e.target[i]-from)*t);
  }
  scoreCounter(g){const c=this.ctx,wheels=this.scoreWheels(g),spacing=Math.floor(60/wheels.length),unit=spacing>=8?2:1,left=160-spacing*wheels.length/2;
-  c.fillStyle='#101e17';c.fillRect(126,389,68,24);c.fillStyle='#66795f';c.fillRect(128,393,64,16);c.fillStyle='#0b140e';c.fillRect(129,394,62,14);
+  c.save();c.translate(0,-20);c.fillStyle='#101e17';c.fillRect(126,389,68,24);c.fillStyle='#66795f';c.fillRect(128,393,64,16);c.fillStyle='#0b140e';c.fillRect(129,394,62,14);
   wheels.forEach((position,i)=>{const x=left+i*spacing,whole=Math.floor(position),fraction=position-whole,offset=(spacing-1-3*unit)/2;
    c.fillStyle='#29372b';c.fillRect(x,394,spacing-1,14);c.save();c.beginPath();c.rect(x,394,spacing-1,14);c.clip();
    for(let j=0;j<2;j++)pixelText(c,((whole+j)%10+10)%10,Math.round(x+offset),Math.round(396+j*14-fraction*14),unit,'#eee6b0');
    c.fillStyle='#07110c88';c.fillRect(x,394,spacing-1,1);c.fillRect(x,407,spacing-1,1);c.fillStyle='#82907a40';c.fillRect(x,401,spacing-1,1);c.restore();
   });
+  c.restore();
  }
  lifeLights(g){const c=this.ctx;
   if(g.god){
-   const cx=222,cy=401,pulse=Math.floor(g.time*4)%2===0,au=!!g.auto;c.fillStyle='#101e17';for(let y=-6;y<=6;y++){const h=Math.floor(Math.sqrt(36-y*y+.5));c.fillRect(cx-h,cy+y,h*2+1,1)}
-   c.fillStyle=au?(pulse?'#7dffb0':'#3ec97c'):(pulse?'#ff9a3c':'#d9722a');for(let y=-5;y<=5;y++){const h=Math.floor(Math.sqrt(25-y*y+.5));c.fillRect(cx-h,cy+y,h*2+1,1)}
-   c.fillStyle='rgba(255,255,255,.6)';c.fillRect(cx-3,cy-3,2,1);c.fillRect(cx-4,cy-2,1,1);
-   pixelText(c,au?'AUTOPILOT':'FUCKER',234,396,2,au?(pulse?'#b9f5c0':'#7dffb0'):(pulse?'#ffd27a':'#ffb84f'));return;
+   const pulse=Math.floor(g.time*4)%2===0,au=!!g.auto;
+   this.disk(214,382,6,'#101e17');this.disk(214,382,5,au?(pulse?'#7dffb0':'#3ec97c'):(pulse?'#ff9a3c':'#d9722a'));
+   c.fillStyle='rgba(255,255,255,.6)';c.fillRect(211,379,2,1);c.fillRect(210,380,1,1);
+   pixelText(c,au?'AUTOPILOT':'FUCKER',226,377,2,au?(pulse?'#b9f5c0':'#7dffb0'):(pulse?'#ffd27a':'#ffb84f'));return;
   }
-  for(let i=0;i<MAX_LIVES;i++){const x=213+i%5*21,y=i<5?396:405;c.fillStyle=i<g.lives?'#c5df8a':'#26382a';c.fillRect(x,y-3,2,7);c.fillRect(x-3,y,8,2);c.fillRect(x-1,y+3,4,1)}
+  // Każde życie to oryginalny sprite samolotu z klasycznej wersji (świecący albo zgaszony).
+  for(let i=0;i<MAX_LIVES;i++){const cx=214+i%5*20,top=i<5?369:383,on=i<g.lives;
+   sprites.jet.forEach((row,r)=>{for(let col=0;col<8;col++)if(row&(128>>col)){c.fillStyle=on?'#e8e66b':'#26382a';c.fillRect(cx-4+col,top+r,1,1)}})}
  }
  speedReading(g){const speed=clamp(g.speed,MIN_SPEED,MAX_SPEED);return Math.round(speed<=CRUISE?200+300*(speed-MIN_SPEED)/(CRUISE-MIN_SPEED):500+300*(speed-CRUISE)/(MAX_SPEED-CRUISE))}
- flightInstruments(g,bank){const c=this.ctx;
-  // Matching circular instruments, with a pixel-stepped rim and attitude face.
-  const hx=100,hy=364;
-  for(const [r,color] of [[19,'#101e17'],[17,'#91a082'],[15,'#28a8cf']]){
-   c.fillStyle=color;for(let y=-r;y<=r;y++){const half=Math.floor(Math.sqrt(r*r-y*y));c.fillRect(hx-half,hy+y,half*2+1,1)}
+ flightInstruments(g,bank){const c=this.ctx,hx=94,hy=330,sx=226,sy=330;
+  for(const [x,y] of [[hx,hy],[sx,sy]]){
+   this.disk(x,y,27,'#0b140e');this.disk(x,y,26,'#3d5245');this.disk(x,y,24,'#101e17');this.disk(x,y,22,'#91a082');
+   for(const [dx,dy] of [[-30,-24],[28,-24],[-30,22],[28,22]])this.bolt(x+dx,y+dy);
   }
-  c.save();c.beginPath();
-  for(let y=-15;y<=15;y++){const half=Math.floor(Math.sqrt(225-y*y));c.rect(hx-half,hy+y,half*2+1,1)}
-  c.clip();
+  // Sztuczny horyzont.
+  this.disk(hx,hy,20,'#28a8cf');
+  c.save();c.beginPath();for(let y=-20;y<=20;y++){const half=Math.floor(Math.sqrt(400-y*y));c.rect(hx-half,hy+y,half*2+1,1)}c.clip();
   c.translate(hx,hy);c.rotate(-clamp(bank,-1,1)*.42);
-  c.fillStyle='#28a8cf';c.fillRect(-36,-36,72,36);c.fillStyle='#b5703e';c.fillRect(-36,0,72,36);
-  c.fillStyle='#e2e1ac';c.fillRect(-36,0,72,1);
-  for(const y of [-10,-5,5,10]){const w=Math.abs(y)===10?12:8;c.fillRect(-w/2,y,w,1);if(Math.abs(y)===10){c.fillRect(-w/2,y-1,1,3);c.fillRect(w/2-1,y-1,1,3)}}
+  c.fillStyle='#28a8cf';c.fillRect(-44,-44,88,44);c.fillStyle='#b5703e';c.fillRect(-44,0,88,44);
+  c.fillStyle='#e2e1ac';c.fillRect(-44,0,88,1);
+  for(const y of [-14,-7,7,14]){const w=Math.abs(y)===14?16:10;c.fillRect(-w/2,y,w,1);if(Math.abs(y)===14){c.fillRect(-w/2,y-1,1,3);c.fillRect(w/2-1,y-1,1,3)}}
   c.restore();
-  c.fillStyle='#ece59a';c.fillRect(hx-12,hy,8,2);c.fillRect(hx+5,hy,8,2);c.fillRect(hx-1,hy+1,3,3);
-  c.fillStyle='#f0e6be';c.fillRect(hx-1,hy-14,3,2);
-  // Display scale: minimum 200, cruise 500, maximum 800; physics is unchanged.
-  const sx=220,sy=364,reading=this.speedReading(g);
-  for(const [r,color] of [[19,'#101e17'],[17,'#91a082'],[15,'#14251b']]){
-   c.fillStyle=color;for(let y=-r;y<=r;y++){const half=Math.floor(Math.sqrt(r*r-y*y));c.fillRect(sx-half,sy+y,half*2+1,1)}
-  }
+  c.fillStyle='#ece59a';c.fillRect(hx-17,hy,11,2);c.fillRect(hx+7,hy,11,2);c.fillRect(hx-1,hy+1,3,3);
+  c.fillStyle='#f0e6be';c.fillRect(hx-1,hy-19,3,3);
+  // Prędkościomierz: skala wyświetlana 200..800, fizyka bez zmian.
+  const reading=this.speedReading(g);
+  this.disk(sx,sy,20,'#14251b');
   const start=Math.PI*5/6,sweep=Math.PI*4/3;
   c.strokeStyle='#d5d9ae';c.lineWidth=1;
-  for(let i=0;i<=6;i++){const a=start+sweep*i/6,inner=i%2===0?10:12;c.beginPath();c.moveTo(Math.round(sx+Math.cos(a)*inner),Math.round(sy+Math.sin(a)*inner));c.lineTo(Math.round(sx+Math.cos(a)*14),Math.round(sy+Math.sin(a)*14));c.stroke()}
+  for(let i=0;i<=6;i++){const a=start+sweep*i/6,inner=i%2===0?12:14;c.beginPath();c.moveTo(Math.round(sx+Math.cos(a)*inner),Math.round(sy+Math.sin(a)*inner));c.lineTo(Math.round(sx+Math.cos(a)*18),Math.round(sy+Math.sin(a)*18));c.stroke()}
   const angle=start+sweep*(reading-200)/600;
-  c.strokeStyle='#ece59a';c.lineWidth=1;c.beginPath();c.moveTo(sx,sy);c.lineTo(Math.round(sx+Math.cos(angle)*11),Math.round(sy+Math.sin(angle)*11));c.stroke();
+  c.strokeStyle='#ece59a';c.lineWidth=1;c.beginPath();c.moveTo(sx,sy);c.lineTo(Math.round(sx+Math.cos(angle)*15),Math.round(sy+Math.sin(angle)*15));c.stroke();
   c.fillStyle='#ece59a';c.fillRect(sx-1,sy-1,3,3);
-  pixelText(c,String(reading),sx-5,sy+8,1,'#dce0aa');
+  c.fillStyle='#070b08';c.fillRect(sx-8,sy+8,16,8);pixelText(c,String(reading),sx-6,sy+9,1,'#dce0aa');
  }
  cabin(g,bank){const c=this.ctx;
-  // A single fighter canopy arch, rasterized as two-pixel steps.
-  // Glass stays transparent both above and below this narrow arch.
-  // There are no vertical window pillars in the forward view.
-  for(let x=0;x<W;x+=2){const offset=x+1-W/2;
-   const outer=Math.round(211-198*Math.sqrt(Math.max(0,1-(offset/218)**2))),inner=Math.round(211-182*Math.sqrt(Math.max(0,1-(offset/202)**2)));
+  // Odblaski na szybie.
+  this.polygon(c,[[0,40],[22,40],[8,120],[0,120]],'rgba(255,255,255,.06)');this.polygon(c,[[30,40],[38,40],[26,120],[18,120]],'rgba(255,255,255,.045)');
+  // Łuk kopuły: jeden pas ramy z zaciskami i nitami; szyba pozostaje przezroczysta nad i pod nim.
+  const outerAt=x=>Math.round(211-198*Math.sqrt(Math.max(0,1-((x-160)/218)**2))),innerAt=x=>Math.round(211-182*Math.sqrt(Math.max(0,1-((x-160)/202)**2)));
+  for(let x=0;x<W;x+=2){const outer=outerAt(x+1),inner=innerAt(x+1);
    c.fillStyle='#293b31';c.fillRect(x,Math.max(0,outer),2,inner-Math.max(0,outer));
-   c.fillStyle='#71816b';c.fillRect(x,Math.max(0,outer+3),2,3);c.fillStyle='#102019';c.fillRect(x,inner-3,2,3);
+   c.fillStyle='#71816b';c.fillRect(x,Math.max(0,outer+3),2,3);c.fillStyle='#4a5e4c';c.fillRect(x,Math.max(0,outer+6),2,1);c.fillStyle='#102019';c.fillRect(x,inner-3,2,3);
+  }
+  // Zaciski idą po łuku: każda kolumna mieści się dokładnie w pasie ramy, a nity leżą na jego osi.
+  for(const x of [37,114,160,201,290]){
+   for(let xx=x-6;xx<x+6;xx+=2){const o=outerAt(xx+1),n=innerAt(xx+1),edge=xx===x-6||xx===x+4;
+    c.fillStyle=edge?'#0b140e':'#1a2a22';c.fillRect(xx,o,2,n-o);c.fillStyle=edge?'#0b140e':'#5c7260';c.fillRect(xx,o,2,1);c.fillStyle='#0b140e';c.fillRect(xx,n-1,2,1)}
+   for(const bx of [x-4,x+2]){const m=Math.round((outerAt(bx+1)+innerAt(bx+1))/2);this.bolt(bx,m-1)}
   }
   c.fillStyle='#eff0b0';for(const [x,y,w,h] of [[147,176,8,1],[165,176,8,1],[160,163,1,8],[160,182,1,7]])c.fillRect(x,y,w,h);
-  this.polygon(c,[[123,359],[139,335],[181,335],[197,359]],'#899484');c.fillStyle='#c3c7a8';c.fillRect(141,335,38,3);c.fillStyle='#536649';c.fillRect(154,339,12,17);
-  // Keep clearance above the radar and above the lower instrument strip.
-  // The plateau remains twice the radar housing's width, with fixed side edges.
-  for(let x=0;x<W;x+=2){const t=Math.max(0,(Math.abs(x+1-160)-51)/109),top=Math.round(328+51*t);
-   c.fillStyle='#101e17';c.fillRect(x,top,2,H-top);c.fillStyle='#74846c';c.fillRect(x,top+2,2,2);c.fillStyle='#2c4231';c.fillRect(x,top+4,2,H-top-4);
-  }
-  c.fillStyle='#203426';c.fillRect(0,386,W,30);c.fillStyle='#64755b';c.fillRect(0,386,W,1);
-  this.radar(g);
-  c.fillStyle='#101e17';c.fillRect(5,387,118,28);c.fillRect(197,387,118,28);
-  // The original E / 1/2 / F face, including its yellow moving marker.
-  c.fillStyle='#898c86';c.fillRect(10,389,112,24);drawFuelBacklight(c,12,391,108,20,g);c.strokeStyle='#090e0c';c.lineWidth=2;c.strokeRect(10,389,112,24);
-  pixelText(c,'E',16,401,2,'#090e0c');pixelText(c,'F',106,401,2,'#090e0c');pixelText(c,'1',55,392,1,'#090e0c');pixelText(c,'2',69,404,1,'#090e0c');
-  for(const x of [19,65,112]){c.fillStyle='#090e0c';c.fillRect(x,390,2,4)}
-  c.beginPath();c.moveTo(57,408);c.lineTo(73,394);c.stroke();c.fillStyle=g.fuel<25?'#f27953':'#ece95a';c.fillRect(Math.round(19+93*g.fuel/100)-1,395,3,16);
-  this.scoreCounter(g);this.lifeLights(g);
+  // Deska rozdzielcza: wysoka, z wystającym środkiem nad radarem i skosami po bokach.
+  const top=[[0,322],[24,308],[60,296],[100,286],[123,279],[197,279],[220,286],[260,296],[296,308],[320,320]];
+  this.polygon(c,top.concat([[320,416],[0,416]]),'#101e17');
+  c.fillStyle='#74846c';for(let k=1;k<top.length;k++){this.line(c,top[k-1][0],top[k-1][1]+1,top[k][0],top[k][1]+1);this.line(c,top[k-1][0],top[k-1][1]+2,top[k][0],top[k][1]+2)}
+  this.polygon(c,top.map(p=>[p[0],p[1]+4]).concat([[320,416],[0,416]]),'#2c4231');
+  c.fillStyle='#64755b';c.fillRect(0,360,W,1);c.fillStyle='#0b140e';c.fillRect(0,361,W,1);c.fillStyle='#203426';c.fillRect(0,362,W,54);
+  // Wloty powietrza i dźwignie po bokach.
+  c.fillStyle='#0b140e';for(const x of [24,264])for(let k=0;k<3;k++)c.fillRect(x,342+k*4,32,2);
+  for(const x of [0,304]){c.fillStyle='#0b140e';c.fillRect(x,332,16,15);c.fillStyle='#1c2e24';c.fillRect(x+(x?1:2),335,13,9);c.fillStyle='#4a5e4c';c.fillRect(x,333,16,1);c.fillRect(x+(x?15:0),333,1,13)}
+  this.radar(g,bank);
   this.flightInstruments(g,bank);
-  // Lampki: zielona FUEL przy tankowaniu, czerwona E przy rezerwie (w rytmie oryginalnego alarmu paliwa).
-  const alert=fuelAlert.sample(g),disk=(cx,cy,r,col)=>{c.fillStyle=col;for(let y=-r;y<=r;y++){const h=Math.floor(Math.sqrt(r*r-y*y+.5));c.fillRect(cx-h,cy+y,h*2+1,1)}};
-  const lamp=(cx,cy,on,col,dim)=>{disk(cx,cy,5,'#101e17');disk(cx,cy,4,on?col:dim);if(on){c.fillStyle='rgba(255,255,255,.6)';c.fillRect(cx-2,cy-3,2,1);c.fillRect(cx-3,cy-2,1,1)}};
-  lamp(60,371,g.refueling,'#8cff9e','#24402a');pixelText(c,'FUEL',53,379,1,g.refueling?'#b9f5c0':'#5f735c');
-  lamp(260,371,alert.low&&alert.lit,'#ff5a4a','#4a2420');pixelText(c,'E',259,379,1,alert.low?'#ffb3a8':'#5f735c');
-  // Błysk wylotu działka w nosie przez pierwsze klatki po strzale.
-  if(g.bullet&&g.player.y-17-g.bullet.y<30){c.fillStyle='rgba(241,236,133,.85)';c.fillRect(159,308,2,20);c.fillRect(150,319,20,2);c.fillStyle='#fff5cb';c.fillRect(158,318,4,4)}
+  // Dolny rząd: zegar paliwa, licznik punktów i kontrolki żyć w osobnych wnękach.
+  const ox=17,oy=367,fw=101,fh=26;
+  this.pocket(ox,oy,fw,fh);this.pocket(126,369,68,24);this.pocket(202,366,104,32);
+  c.fillStyle='#898c86';c.fillRect(ox,oy,fw,fh);drawFuelBacklight(c,ox+2,oy+2,fw-4,fh-4,g);c.strokeStyle='#090e0c';c.lineWidth=2;c.strokeRect(ox,oy,fw,fh);
+  pixelText(c,'E',ox+6,oy+11,2,'#090e0c');pixelText(c,'F',ox+fw-16,oy+11,2,'#090e0c');pixelText(c,'1',ox+45,oy+3,1,'#090e0c');pixelText(c,'2',ox+59,oy+15,1,'#090e0c');
+  for(const x of [ox+9,ox+Math.floor(fw/2),ox+fw-10]){c.fillStyle='#090e0c';c.fillRect(x,oy+1,2,4)}
+  c.beginPath();c.moveTo(ox+47,oy+20);c.lineTo(ox+63,oy+6);c.stroke();c.fillStyle=g.fuel<25?'#f27953':'#ece95a';c.fillRect(Math.round(ox+9+(fw-19)*g.fuel/100)-1,oy+5,3,17);
+  this.scoreCounter(g);this.lifeLights(g);
+  for(const [bx,by] of [[8,364],[308,364],[8,398],[308,398],[121,367],[195,367]])this.bolt(bx,by);
+  c.fillStyle='#101e17';c.fillRect(130,403,60,9);c.fillStyle='#4a5e4c';c.fillRect(130,403,60,1);for(let k=0;k<5;k++){c.fillStyle='#0b140e';c.fillRect(136+k*10,406,6,3)}
+  // Wnęki na kolana z gąbkowym obszyciem u dołu deski.
+  for(const kx of [70,250]){
+   for(let x=kx-48;x<=kx+48;x++){const u=(x-kx)/48,top=Math.round(416-16*Math.sqrt(Math.max(0,1-u*u)));
+    c.fillStyle='#4a5e4c';c.fillRect(x,top,1,416-top);c.fillStyle='#74846c';c.fillRect(x,top,1,1);c.fillStyle='#5c7260';c.fillRect(x,top+1,1,1);
+    if((x-kx)%7===0){c.fillStyle='#2c4231';c.fillRect(x,top+3,1,1)}}
+   for(let x=kx-41;x<=kx+41;x++){const u=(x-kx)/41,top=Math.round(416-12*Math.sqrt(Math.max(0,1-u*u)));
+    c.fillStyle='#02060a';c.fillRect(x,top,1,416-top);c.fillStyle='#0b140e';c.fillRect(x,top,1,2)}
+  }
+  // Lampki: zielona FUEL przy tankowaniu, czerwona E przy rezerwie (rytm oryginalnego alarmu paliwa).
+  const alert=fuelAlert.sample(g),lamp=(cx,cy,on,col,dim)=>{this.disk(cx,cy,6,'#0b140e');this.disk(cx,cy,5,'#101e17');this.disk(cx,cy,4,on?col:dim);if(on){c.fillStyle='rgba(255,255,255,.6)';c.fillRect(cx-2,cy-3,2,1);c.fillRect(cx-3,cy-2,1,1)}};
+  lamp(34,324,g.refueling,'#8cff9e','#24402a');pixelText(c,'FUEL',26,333,1,g.refueling?'#b9f5c0':'#5f735c');
+  lamp(286,324,alert.low&&alert.lit,'#ff5a4a','#4a2420');pixelText(c,'E',285,333,1,alert.low?'#ffb3a8':'#5f735c');
+  // Błysk wylotu działka tuż nad deską przez pierwsze klatki po strzale.
+  if(g.bullet&&g.player.y-17-g.bullet.y<30){c.fillStyle='rgba(241,236,133,.85)';c.fillRect(159,256,2,22);c.fillRect(150,266,20,2);c.fillStyle='#fff5cb';c.fillRect(158,265,4,4)}
  }
  edgeAlert(c,g){if(edge.k<=0)return;
   const blink=edge.k>.7&&Math.floor(g.time*10)%2?.6:1;
   for(const [side,k,gap] of [[-1,edge.l,edge.gl],[1,edge.r,edge.gr]]){if(k<=0)continue;
-   for(let i=0;i<4;i++){c.fillStyle='rgba(255,106,85,'+(k*(.62-.14*i)*blink).toFixed(2)+')';c.fillRect(side<0?6*i:W-6*(i+1),104,6,226)}
+   for(let i=0;i<4;i++){c.fillStyle='rgba(255,106,85,'+(k*(.62-.14*i)*blink).toFixed(2)+')';c.fillRect(side<0?6*i:W-6*(i+1),104,6,170)}
    const x=side<0?20:300,dx=side<0?20:-20;
    this.polygon(c,[[x,190],[x+dx,208],[x,226]],'rgba(255,106,85,'+((.35+.65*k)*blink).toFixed(2)+')');
    // Odległość do brzegu obok strzałki, bez tła; widoczna tylko w czasie ostrzeżenia.
@@ -1154,6 +1178,7 @@ function sync(force=false){
  }
 }
 $('start').addEventListener('click',()=>game.mode==='paused'?pause():begin());$('restart').addEventListener('click',begin);$('pause').addEventListener('click',pause);
+sound.enabled=true;
 $('sound').addEventListener('click',()=>{sound.enabled=!sound.enabled;if(sound.enabled){sound.unlock();sound.play('preview')}sound.update(game,input());if(!sound.enabled&&sound.context&&sound.context.state==='running'){const p=sound.context.suspend();if(p&&p.catch)p.catch(()=>{})}$('sound').textContent='Dźwięk: '+(sound.enabled?'wł.':'wył.');$('sound').setAttribute('aria-pressed',String(sound.enabled))});
 // Ukryta funkcja: przeciągnięcie po ramce szyby (lewo-prawo-lewo lub prawo-lewo-prawo) przełącza tryby: 1) FUCKER (niezniszczalność), 2) AUTOPILOT, 3) normalna gra.
 function frameBand(x,y){const o=x-160,outer=211-198*Math.sqrt(Math.max(0,1-(o/218)**2)),inner=211-182*Math.sqrt(Math.max(0,1-(o/202)**2));return y>=outer-16&&y<=inner+16}
@@ -1200,7 +1225,8 @@ function setGraphics(mode,persist=true){
  queueMicrotask(fitPhoneViewport);
 }
 for(const [id,mode] of [['graphicsClassic','classic'],['graphicsModern','modern'],['graphicsCockpit','cockpit']])$(id).addEventListener('click',e=>{setGraphics(mode);if(e.detail)$(id).blur()});
-let savedGraphics=document.body.dataset.defaultGraphics||'classic';try{savedGraphics=localStorage.getItem(graphicsStorageKey)||savedGraphics}catch{}setGraphics(savedGraphics,false);
+// Każda nowo otwarta gra startuje w widoku kokpitu, niezależnie od wcześniejszego wyboru.
+setGraphics('cockpit',false);
 
 // Relative direct manipulation: preserve the offset to the plane on contact,
 // then match each finger displacement in CSS pixels. No joystick/dead zone.
